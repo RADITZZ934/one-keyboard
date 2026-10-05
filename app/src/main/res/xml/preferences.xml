@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Appearance / Theme Category -->
+    <PreferenceCategory
+        android:title="@string/pref_category_appearance"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            android:defaultValue="system"
+            android:dialogTitle="@string/pref_theme_title"
+            android:entries="@array/pref_theme_entries"
+            android:entryValues="@array/pref_theme_values"
+            android:key="pref_theme"
+            android:summary="@string/pref_theme_summary"
+            android:title="@string/pref_theme_title"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <!-- Scan Settings Category -->
+    <PreferenceCategory
+        android:title="@string/pref_category_scan"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="pref_auto_enter"
+            android:summary="@string/pref_auto_enter_summary"
+            android:title="@string/pref_auto_enter_title"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="pref_vibrate"
+            android:summary="@string/pref_vibrate_summary"
+            android:title="@string/pref_vibrate_title"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="pref_sound"
+            android:summary="@string/pref_sound_summary"
+            android:title="@string/pref_sound_title"
+            app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            android:defaultValue=""
+            android:dialogTitle="@string/pref_prefix_title"
+            android:key="pref_prefix"
+            android:summary="@string/pref_prefix_summary"
+            android:title="@string/pref_prefix_title"
+            app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            android:defaultValue=""
+            android:dialogTitle="@string/pref_suffix_title"
+            android:key="pref_suffix"
+            android:summary="@string/pref_suffix_summary"
+            android:title="@string/pref_suffix_title"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

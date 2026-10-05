@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/keyboardRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/heliboard_surface"
+    android:orientation="vertical">
+
+    <!-- 1. Collapsible Camera Scanner Viewfinder -->
+    <FrameLayout
+        android:id="@+id/scannerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="175dp"
+        android:background="#000000"
+        android:visibility="gone">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/cameraPreviewView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <com.example.barcodekeyboard.ui.keyboard.ScannerOverlayView
+            android:id="@+id/scannerOverlayView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="8dp"
+            android:background="#AA000000"
+            android:paddingStart="12dp"
+            android:paddingTop="3dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="3dp"
+            android:text="Arahkan kamera ke barcode/QR"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp" />
+
+        <Button
+            android:id="@+id/btnGrantPermission"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_key_accent"
+            android:text="@string/grant_camera_permission"
+            android:textColor="#FFFFFF"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+    <!-- 2. HeliBoard-Inspired Top Action Toolbar -->
+    <LinearLayout
+        android:id="@+id/toolbarContainer"
+        android:layout_width="match_parent"
+        android:layout_height="42dp"
+        android:background="@color/heliboard_toolbar_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
+
+        <!-- Barcode Scanner Toggle Button -->
+        <ImageButton
+            android:id="@+id/btnToggleScanner"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_toolbar_item"
+            android:contentDescription="Toggle Scanner"
+            android:padding="6dp"
+            android:src="@drawable/ic_scan"
+            app:tint="@color/heliboard_accent" />
+
+        <!-- Flashlight Button (visible when scanner active) -->
+        <ImageButton
+            android:id="@+id/btnFlash"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="2dp"
+            android:background="@drawable/bg_toolbar_item"
+            android:contentDescription="Flashlight"
+            android:padding="7dp"
+            android:src="@drawable/ic_flash"
+            android:visibility="gone"
+            app:tint="@color/heliboard_text" />
+
+        <!-- Clipboard Paste Button -->
+        <ImageButton
+            android:id="@+id/btnPaste"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="2dp"
+            android:background="@drawable/bg_toolbar_item"
+            android:contentDescription="Paste"
+            android:padding="7dp"
+            android:src="@drawable/ic_paste"
+            app:tint="@color/heliboard_text" />
+
+        <!-- Move Cursor Left -->
+        <ImageButton
+            android:id="@+id/btnCursorLeft"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="2dp"
+            android:background="@drawable/bg_toolbar_item"
+            android:contentDescription="Cursor Left"
+            android:padding="7dp"
+            android:src="@drawable/ic_arrow_left"
+            app:tint="@color/heliboard_text_sub" />
+
+        <!-- Move Cursor Right -->
+        <ImageButton
+            android:id="@+id/btnCursorRight"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="2dp"
+            android:background="@drawable/bg_toolbar_item"
+            android:contentDescription="Cursor Right"
+            android:padding="7dp"
+            android:src="@drawable/ic_arrow_right"
+            app:tint="@color/heliboard_text_sub" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Settings Shortcut -->
+        <ImageButton
+            android:id="@+id/btnSettings"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_toolbar_item"
+            android:contentDescription="Settings"
+            android:padding="7dp"
+            android:src="@drawable/ic_settings"
+            app:tint="@color/heliboard_text_sub" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/heliboard_divider" />
+
+    <!-- 3. HeliBoard Essential Keyboard Keypad Area -->
+    <LinearLayout
+        android:id="@+id/keypadContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="3dp"
+        android:paddingTop="5dp"
+        android:paddingEnd="3dp"
+        android:paddingBottom="6dp">
+
+        <!-- Row 1 -->
+        <LinearLayout
+            android:id="@+id/row1"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:orientation="horizontal" />
+
+        <!-- Row 2 -->
+        <LinearLayout
+            android:id="@+id/row2"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal" />
+
+        <!-- Row 3 -->
+        <LinearLayout
+            android:id="@+id/row3"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal" />
+
+        <!-- Row 4 -->
+        <LinearLayout
+            android:id="@+id/row4"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal" />
+
+    </LinearLayout>
+
+</LinearLayout>

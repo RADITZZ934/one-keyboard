@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">Barcode Keyboard</string>
+    <string name="settings_title">Pengaturan Barcode Keyboard</string>
+    <string name="grant_camera_permission">Izinkan Akses Kamera</string>
+    <string name="camera_permission_required">Aplikasi ini membutuhkan izin kamera untuk memindai barcode dan kode QR.</string>
+    <string name="enable_keyboard_title">Aktifkan Papan Ketik</string>
+    <string name="enable_keyboard_summary">Buka pengaturan sistem untuk mengaktifkan Barcode Keyboard</string>
+    <string name="select_keyboard_title">Pilih Papan Ketik Aktif</string>
+    <string name="select_keyboard_summary">Ganti keyboard utama menjadi Barcode Keyboard</string>
+    
+    <!-- Appearance / Theme Preferences -->
+    <string name="pref_category_appearance">Tampilan &amp; Tema</string>
+    <string name="pref_theme_title">Tema Keyboard</string>
+    <string name="pref_theme_summary">Pilih mode tampilan keyboard (Terang, Gelap, atau Ikuti Sistem)</string>
+    <string name="theme_system">Ikuti Sistem</string>
+    <string name="theme_dark">Mode Gelap (Dark)</string>
+    <string name="theme_light">Mode Terang (Light)</string>
+
+    <string-array name="pref_theme_entries">
+        <item>@string/theme_system</item>
+        <item>@string/theme_dark</item>
+        <item>@string/theme_light</item>
+    </string-array>
+
+    <string-array name="pref_theme_values">
+        <item>system</item>
+        <item>dark</item>
+        <item>light</item>
+    </string-array>
+
+    <!-- Scan Preferences -->
+    <string name="pref_category_scan">Pengaturan Pemindaian</string>
+    <string name="pref_auto_enter_title">Kirim Otomatis (Auto-Enter)</string>
+    <string name="pref_auto_enter_summary">Otomatis menekan Enter setelah barcode berhasil dipindai</string>
+    <string name="pref_vibrate_title">Getar (Haptic Feedback)</string>
+    <string name="pref_vibrate_summary">Getar singkat saat barcode terdeteksi</string>
+    <string name="pref_sound_title">Suara Bip (Beep)</string>
+    <string name="pref_sound_summary">Bunyikan nada bip saat barcode terdeteksi</string>
+    <string name="pref_prefix_title">Awalan (Prefix)</string>
+    <string name="pref_prefix_summary">Teks yang ditambahkan sebelum hasil scan</string>
+    <string name="pref_suffix_title">Akhiran (Suffix)</string>
+    <string name="pref_suffix_summary">Teks yang ditambahkan setelah hasil scan</string>
+    
+    <!-- Test Area -->
+    <string name="test_area_hint">Uji coba ketuk di sini lalu arahkan ke barcode/QR...</string>
+    <string name="test_area_label">Area Uji Coba Langsung</string>
+</resources>

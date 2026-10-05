@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Live Test Area Colors (Dark / Night) -->
+    <color name="test_input_bg">#1E1F22</color>
+    <color name="test_input_text">#F2F3F5</color>
+    <color name="test_input_hint">#949BA4</color>
+    <color name="test_input_stroke">#3F4147</color>
+</resources>
