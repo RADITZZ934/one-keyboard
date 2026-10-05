@@ -1,8 +1,6 @@
 package com.example.barcodekeyboard.ui.settings
 
 import android.Manifest
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -19,7 +17,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.barcodekeyboard.R
-import com.example.barcodekeyboard.core.clipboard.ClipboardHistoryManager
 import com.example.barcodekeyboard.core.feedback.BeepSoundManager
 import com.example.barcodekeyboard.core.feedback.VibrationHelper
 import com.example.barcodekeyboard.data.preferences.KeyboardPreferences
@@ -33,8 +30,6 @@ class SettingsActivity : AppCompatActivity() {
         private const val PERMISSION_REQUEST_CAMERA = 1001
     }
 
-    private lateinit var clipboardHistoryManager: ClipboardHistoryManager
-    private var tvSettingsClipboardCount: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val preferences = KeyboardPreferences(this)
@@ -148,35 +143,11 @@ class SettingsActivity : AppCompatActivity() {
             etTestInput?.append(text)
             Toast.makeText(this, "Bunyi Beep Gagal (Nada Rendah / Error)", Toast.LENGTH_SHORT).show()
         }
-
-        // Clipboard History section
-        clipboardHistoryManager = ClipboardHistoryManager.getInstance(this)
-        tvSettingsClipboardCount = findViewById(R.id.tvSettingsClipboardCount)
-        val btnCopySampleClip: Button? = findViewById(R.id.btnCopySampleClip)
-        val btnClearAllClips: Button? = findViewById(R.id.btnClearAllClips)
-
-        updateClipboardCount()
-
-        btnCopySampleClip?.setOnClickListener {
-            val sampleText = "Contoh Teks Papan Klip [899276111122]"
-            val cm = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-            cm?.setPrimaryClip(ClipData.newPlainText("Sample", sampleText))
-            clipboardHistoryManager.addClip(sampleText)
-            updateClipboardCount()
-            Toast.makeText(this, "Teks berhasil disalin ke papan klip!", Toast.LENGTH_SHORT).show()
-        }
-
-        btnClearAllClips?.setOnClickListener {
-            clipboardHistoryManager.clearAll(keepPinned = false)
-            updateClipboardCount()
-            Toast.makeText(this, "Riwayat papan klip dibersihkan", Toast.LENGTH_SHORT).show()
-        }
     }
 
     override fun onResume() {
         super.onResume()
         updateActivationUI()
-        updateClipboardCount()
 
         // Auto-advance bypass: If user just turned on toggle in settings and returned,
         // automatically trigger the input method picker so user doesn't need to click Step 2!
@@ -256,13 +227,6 @@ class SettingsActivity : AppCompatActivity() {
             tvEnableHint?.visibility = android.view.View.GONE
             btnEnableKeyboard.text = "✓ Langkah 1 Selesai"
             btnSelectKeyboard.text = "✓ One Keyboard Digunakan (Ganti)"
-        }
-    }
-
-    private fun updateClipboardCount() {
-        if (::clipboardHistoryManager.isInitialized) {
-            val count = clipboardHistoryManager.getClipCount()
-            tvSettingsClipboardCount?.text = "$count klip"
         }
     }
 
