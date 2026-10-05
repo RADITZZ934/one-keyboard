@@ -115,6 +115,35 @@
                         android:textCursorDrawable="@drawable/cursor_drawable"
                         android:textSize="15sp" />
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnTestSuccess"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="6dp"
+                            android:text="✓ Tes Bunyi Sukses"
+                            android:textColor="#00E676"
+                            android:textSize="12sp" />
+
+                        <Button
+                            android:id="@+id/btnTestFailure"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="6dp"
+                            android:text="✕ Tes Bunyi Gagal"
+                            android:textColor="#FF5252"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

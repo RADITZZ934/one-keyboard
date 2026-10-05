@@ -16,6 +16,8 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.barcodekeyboard.R
+import com.example.barcodekeyboard.core.feedback.BeepSoundManager
+import com.example.barcodekeyboard.core.feedback.VibrationHelper
 import com.example.barcodekeyboard.data.preferences.KeyboardPreferences
 
 /**
@@ -57,6 +59,11 @@ class SettingsActivity : AppCompatActivity() {
         val btnSelect: Button = findViewById(R.id.btnSelectKeyboard)
         val btnClear: Button? = findViewById(R.id.btnClearTestInput)
         val etTestInput: EditText? = findViewById(R.id.etTestInput)
+        val btnTestSuccess: Button? = findViewById(R.id.btnTestSuccess)
+        val btnTestFailure: Button? = findViewById(R.id.btnTestFailure)
+
+        val beepManager = BeepSoundManager(this)
+        val vibrationHelper = VibrationHelper(this)
 
         btnEnable.setOnClickListener {
             val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)
@@ -71,6 +78,22 @@ class SettingsActivity : AppCompatActivity() {
 
         btnClear?.setOnClickListener {
             etTestInput?.text?.clear()
+        }
+
+        btnTestSuccess?.setOnClickListener {
+            beepManager.playSuccessBeep()
+            vibrationHelper.vibrateSuccess()
+            val text = if (etTestInput?.text.isNullOrBlank()) "[✓ SUKSES: 899276111122]" else "\n[✓ SUKSES: 899276111122]"
+            etTestInput?.append(text)
+            Toast.makeText(this, "Bunyi Beep Sukses (Nada Tinggi)", Toast.LENGTH_SHORT).show()
+        }
+
+        btnTestFailure?.setOnClickListener {
+            beepManager.playFailureBeep()
+            vibrationHelper.vibrateFailure()
+            val text = if (etTestInput?.text.isNullOrBlank()) "[✕ GAGAL: Barcode Tidak Terbaca]" else "\n[✕ GAGAL: Barcode Tidak Terbaca]"
+            etTestInput?.append(text)
+            Toast.makeText(this, "Bunyi Beep Gagal (Nada Rendah / Error)", Toast.LENGTH_SHORT).show()
         }
     }
 

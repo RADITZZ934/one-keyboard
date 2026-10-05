@@ -88,6 +88,7 @@ class KeyboardView(
     var onScannerToggled: ((Boolean) -> Unit)? = null
     var onFlashClicked: (() -> Unit)? = null
     var onGrantPermissionClicked: (() -> Unit)? = null
+    var onViewfinderTapped: (() -> Unit)? = null
 
     // Backspace auto-repeat handler
     private val repeatHandler = Handler(Looper.getMainLooper())
@@ -96,6 +97,9 @@ class KeyboardView(
 
     init {
         setupToolbar()
+        scannerOverlayView.onViewfinderTapped = {
+            onViewfinderTapped?.invoke()
+        }
         applyTheme(isDark = true)
     }
 
@@ -200,20 +204,53 @@ class KeyboardView(
     }
 
     fun showScannedFeedback(text: String) {
-        tvStatus.text = "Hasil: $text"
-        tvStatus.setTextColor(Color.parseColor("#2979FF"))
+        scannerOverlayView.triggerSuccessAnimation()
+        tvStatus.text = "✓ Berhasil: $text"
+        tvStatus.setTextColor(Color.parseColor("#00E676"))
         tvStatus.animate()
-            .scaleX(1.1f).scaleY(1.1f)
-            .setDuration(120)
+            .scaleX(1.15f).scaleY(1.15f)
+            .setDuration(130)
             .withEndAction {
-                tvStatus.animate().scaleX(1f).scaleY(1f).setDuration(150).start()
+                tvStatus.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
             }
             .start()
 
         tvStatus.postDelayed({
             tvStatus.text = "Arahkan kamera ke barcode/QR"
             tvStatus.setTextColor(Color.WHITE)
-        }, 1800)
+        }, 1900)
+    }
+
+    fun showFailedFeedback(reason: String = "") {
+        scannerOverlayView.triggerFailureAnimation(reason)
+        tvStatus.text = "✕ Gagal: ${reason.ifBlank { "Barcode tidak terbaca" }}"
+        tvStatus.setTextColor(Color.parseColor("#FF5252"))
+
+        // Robotic error micro-shake animation on status text
+        tvStatus.animate()
+            .translationXBy(14f)
+            .setDuration(45)
+            .withEndAction {
+                tvStatus.animate()
+                    .translationXBy(-28f)
+                    .setDuration(45)
+                    .withEndAction {
+                        tvStatus.animate()
+                            .translationXBy(20f)
+                            .setDuration(45)
+                            .withEndAction {
+                                tvStatus.animate().translationX(0f).setDuration(45).start()
+                            }
+                            .start()
+                    }
+                    .start()
+            }
+            .start()
+
+        tvStatus.postDelayed({
+            tvStatus.text = "Arahkan kamera ke barcode/QR"
+            tvStatus.setTextColor(Color.WHITE)
+        }, 1900)
     }
 
     fun renderKeyboard() {

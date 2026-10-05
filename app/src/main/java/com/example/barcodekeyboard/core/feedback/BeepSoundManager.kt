@@ -26,18 +26,44 @@ class BeepSoundManager(private val context: Context) {
         }
     }
 
-    fun playBeep() {
-        // Fast path: ToneGenerator has lowest latency
+    /**
+     * Plays a high-pitched, crisp confirmation chime for successful scan.
+     */
+    fun playSuccessBeep() {
         try {
             toneGenerator?.let {
-                it.startTone(ToneGenerator.TONE_PROP_BEEP, 80)
+                it.startTone(ToneGenerator.TONE_PROP_BEEP, 90)
                 return
             }
         } catch (e: Exception) {
-            Log.w(TAG, "ToneGenerator error, falling back to MediaPlayer", e)
+            Log.w(TAG, "ToneGenerator success beep error, using fallback", e)
         }
 
-        // Fallback: MediaPlayer using R.raw.beep
+        playFallbackSound()
+    }
+
+    /**
+     * Plays a distinct lower-pitched warning/error tone when scan fails.
+     */
+    fun playFailureBeep() {
+        try {
+            toneGenerator?.let {
+                it.startTone(ToneGenerator.TONE_PROP_NACK, 240)
+                return
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "ToneGenerator failure beep error", e)
+        }
+    }
+
+    /**
+     * Legacy alias for playSuccessBeep.
+     */
+    fun playBeep() {
+        playSuccessBeep()
+    }
+
+    private fun playFallbackSound() {
         try {
             val mediaPlayer = MediaPlayer.create(context, R.raw.beep)
             mediaPlayer?.setOnCompletionListener { mp ->
@@ -45,7 +71,7 @@ class BeepSoundManager(private val context: Context) {
             }
             mediaPlayer?.start()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to play beep sound via MediaPlayer", e)
+            Log.e(TAG, "Failed to play fallback sound via MediaPlayer", e)
         }
     }
 

@@ -5,6 +5,8 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.inputmethodservice.InputMethodService
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -141,7 +143,37 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
             openSettingsActivity()
         }
 
+        view.onViewfinderTapped = {
+            triggerKeyHaptic()
+            scheduleScanTimeout(3500L, "Tidak ada barcode terdeteksi")
+        }
+
         return view.rootView
+    }
+
+    private val scanTimeoutHandler = Handler(Looper.getMainLooper())
+    private var scanTimeoutRunnable: Runnable? = null
+
+    private fun scheduleScanTimeout(delayMs: Long, reason: String) {
+        cancelScanTimeout()
+        scanTimeoutRunnable = Runnable {
+            if (keyboardView?.isScannerOpen == true) {
+                if (preferences.isSoundEnabled) {
+                    beepSoundManager.playFailureBeep()
+                }
+                if (preferences.isVibrationEnabled) {
+                    vibrationHelper.vibrateFailure()
+                }
+                keyboardView?.showFailedFeedback(reason)
+            }
+        }.also {
+            scanTimeoutHandler.postDelayed(it, delayMs)
+        }
+    }
+
+    private fun cancelScanTimeout() {
+        scanTimeoutRunnable?.let { scanTimeoutHandler.removeCallbacks(it) }
+        scanTimeoutRunnable = null
     }
 
     private fun triggerKeyHaptic() {
@@ -190,32 +222,53 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
     }
 
     private fun startCameraScanning() {
-        val analyzer = BarcodeAnalyzer { scanResult ->
-            // Audio feedback
-            if (preferences.isSoundEnabled) {
-                beepSoundManager.playBeep()
+        val analyzer = BarcodeAnalyzer(
+            onBarcodeScanned = { scanResult ->
+                cancelScanTimeout()
+
+                // Audio feedback (Success)
+                if (preferences.isSoundEnabled) {
+                    beepSoundManager.playSuccessBeep()
+                }
+
+                // Haptic feedback (Success)
+                if (preferences.isVibrationEnabled) {
+                    vibrationHelper.vibrateSuccess()
+                }
+
+                // Commit scan result with prefix/suffix/auto-enter
+                inputTextHandler.commitScanResult(
+                    inputConnection = currentInputConnection,
+                    scanResult = scanResult,
+                    preferences = preferences
+                )
+
+                // Visual feedback banner & success animation
+                keyboardView?.showScannedFeedback(scanResult.text)
+            },
+            onScanFailed = { errorReason ->
+                cancelScanTimeout()
+
+                // Audio feedback (Failure)
+                if (preferences.isSoundEnabled) {
+                    beepSoundManager.playFailureBeep()
+                }
+
+                // Haptic feedback (Failure)
+                if (preferences.isVibrationEnabled) {
+                    vibrationHelper.vibrateFailure()
+                }
+
+                // Visual feedback banner & failure animation
+                keyboardView?.showFailedFeedback(errorReason)
             }
-
-            // Haptic feedback
-            if (preferences.isVibrationEnabled) {
-                vibrationHelper.vibrate(80)
-            }
-
-            // Commit scan result with prefix/suffix/auto-enter
-            inputTextHandler.commitScanResult(
-                inputConnection = currentInputConnection,
-                scanResult = scanResult,
-                preferences = preferences
-            )
-
-            // Visual feedback banner
-            keyboardView?.showScannedFeedback(scanResult.text)
-        }
+        )
 
         cameraManager?.startCamera(analyzer)
     }
 
     private fun stopCameraScanning() {
+        cancelScanTimeout()
         cameraManager?.stopCamera()
         keyboardView?.updateFlashIcon(false)
     }

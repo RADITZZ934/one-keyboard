@@ -34,4 +34,30 @@ class VibrationHelper(context: Context) {
             Log.e(TAG, "Failed to perform vibration feedback", e)
         }
     }
+
+    /**
+     * Crisp, snappy single tap for success.
+     */
+    fun vibrateSuccess() {
+        vibrate(55L)
+    }
+
+    /**
+     * Distinct double-buzz pattern for failure / error.
+     */
+    fun vibrateFailure() {
+        if (vibrator == null || !vibrator.hasVibrator()) return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val timings = longArrayOf(0, 80, 70, 100)
+                val amplitudes = intArrayOf(0, 220, 0, 255)
+                vibrator.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(longArrayOf(0, 80, 70, 100), -1)
+            }
+        } catch (e: Exception) {
+            vibrate(160L)
+        }
+    }
 }
