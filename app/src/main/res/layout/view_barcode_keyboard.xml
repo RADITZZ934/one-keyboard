@@ -169,35 +169,43 @@
         android:paddingEnd="3dp"
         android:paddingBottom="6dp">
 
+        <!-- Number Row (1 - 0) -->
+        <LinearLayout
+            android:id="@+id/rowNumber"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="horizontal" />
+
         <!-- Row 1 -->
         <LinearLayout
             android:id="@+id/row1"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal" />
 
         <!-- Row 2 -->
         <LinearLayout
             android:id="@+id/row2"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="5dp"
+            android:layout_height="46dp"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal" />
 
         <!-- Row 3 -->
         <LinearLayout
             android:id="@+id/row3"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="5dp"
+            android:layout_height="46dp"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal" />
 
         <!-- Row 4 -->
         <LinearLayout
             android:id="@+id/row4"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginTop="5dp"
+            android:layout_height="46dp"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal" />
 
     </LinearLayout>

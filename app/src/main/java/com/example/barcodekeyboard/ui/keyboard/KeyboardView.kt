@@ -81,6 +81,7 @@ class KeyboardView(
 
     // Key rows and keypad container
     val keypadContainer: LinearLayout = rootView.findViewById(R.id.keypadContainer)
+    private val rowNumber: LinearLayout = rootView.findViewById(R.id.rowNumber)
     private val row1: LinearLayout = rootView.findViewById(R.id.row1)
     private val row2: LinearLayout = rootView.findViewById(R.id.row2)
     private val row3: LinearLayout = rootView.findViewById(R.id.row3)
@@ -347,15 +348,27 @@ class KeyboardView(
     }
 
     fun renderKeyboard() {
+        rowNumber.removeAllViews()
         row1.removeAllViews()
         row2.removeAllViews()
         row3.removeAllViews()
         row4.removeAllViews()
 
+        renderNumberRow()
+
         when (currentMode) {
             KeyboardMode.ALPHABET -> renderAlphabetLayout()
             KeyboardMode.SYMBOLS -> renderSymbolsLayout()
             KeyboardMode.MORE_SYMBOLS -> renderMoreSymbolsLayout()
+        }
+    }
+
+    private fun renderNumberRow() {
+        val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
+        for (num in numbers) {
+            rowNumber.addView(createKeyButton(num, 1f) {
+                handleCharInput(num)
+            })
         }
     }
 
@@ -396,36 +409,39 @@ class KeyboardView(
 
         row3.addView(createBackspaceButton(1.5f))
 
-        // Row 4: [?123] [,] [   Space   ] [.] [Enter]
-        val modeBtn = createFunctionButton("?123", 1.5f) {
+        // Row 4: [?123] [,] [📷 Scan (Biru)] [   Spasi   ] [.] [Enter]
+        val modeBtn = createFunctionButton("?123", 1.4f) {
             currentMode = KeyboardMode.SYMBOLS
             renderKeyboard()
         }
         row4.addView(modeBtn)
 
-        row4.addView(createKeyButton(",", 1.0f) {
+        row4.addView(createKeyButton(",", 0.9f) {
             handleCharInput(",")
         })
 
-        val spaceBtn = createFunctionButton("Spasi", 4.3f) {
+        // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
+        row4.addView(createScanButton(1.3f))
+
+        val spaceBtn = createFunctionButton("Spasi", 3.8f) {
             onSpaceClicked?.invoke()
         }
         row4.addView(spaceBtn)
 
-        row4.addView(createKeyButton(".", 1.0f) {
+        row4.addView(createKeyButton(".", 0.9f) {
             handleCharInput(".")
         })
 
-        row4.addView(createEnterButton(1.6f))
+        row4.addView(createEnterButton(1.7f))
     }
 
     private fun renderSymbolsLayout() {
-        val r1 = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
+        val r1 = listOf("@", "#", "$", "%", "&", "-", "+", "(", ")", "/")
         for (k in r1) {
             row1.addView(createKeyButton(k, 1f) { handleCharInput(k) })
         }
 
-        val r2 = listOf("@", "#", "$", "%", "&", "-", "+", "(", ")", "/")
+        val r2 = listOf("*", "\"", "'", ":", ";", "!", "?", "/", "\\", "_")
         for (k in r2) {
             row2.addView(createKeyButton(k, 1f) { handleCharInput(k) })
         }
@@ -436,29 +452,32 @@ class KeyboardView(
         }
         row3.addView(moreSymBtn)
 
-        val r3 = listOf("*", "\"", "'", ":", ";", "!", "?")
+        val r3 = listOf("~", "`", "|", "^", "=", "{", "}")
         for (k in r3) {
             row3.addView(createKeyButton(k, 1f) { handleCharInput(k) })
         }
 
         row3.addView(createBackspaceButton(1.5f))
 
-        val abcBtn = createFunctionButton("ABC", 1.5f) {
+        val abcBtn = createFunctionButton("ABC", 1.4f) {
             currentMode = KeyboardMode.ALPHABET
             renderKeyboard()
         }
         row4.addView(abcBtn)
 
-        row4.addView(createKeyButton(",", 1.0f) { handleCharInput(",") })
+        row4.addView(createKeyButton(",", 0.9f) { handleCharInput(",") })
 
-        val spaceBtn = createFunctionButton("Spasi", 4.3f) {
+        // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
+        row4.addView(createScanButton(1.3f))
+
+        val spaceBtn = createFunctionButton("Spasi", 3.8f) {
             onSpaceClicked?.invoke()
         }
         row4.addView(spaceBtn)
 
-        row4.addView(createKeyButton(".", 1.0f) { handleCharInput(".") })
+        row4.addView(createKeyButton(".", 0.9f) { handleCharInput(".") })
 
-        row4.addView(createEnterButton(1.6f))
+        row4.addView(createEnterButton(1.7f))
     }
 
     private fun renderMoreSymbolsLayout() {
@@ -485,22 +504,25 @@ class KeyboardView(
 
         row3.addView(createBackspaceButton(1.5f))
 
-        val abcBtn = createFunctionButton("ABC", 1.5f) {
+        val abcBtn = createFunctionButton("ABC", 1.4f) {
             currentMode = KeyboardMode.ALPHABET
             renderKeyboard()
         }
         row4.addView(abcBtn)
 
-        row4.addView(createKeyButton(",", 1.0f) { handleCharInput(",") })
+        row4.addView(createKeyButton(",", 0.9f) { handleCharInput(",") })
 
-        val spaceBtn = createFunctionButton("Spasi", 4.3f) {
+        // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
+        row4.addView(createScanButton(1.3f))
+
+        val spaceBtn = createFunctionButton("Spasi", 3.8f) {
             onSpaceClicked?.invoke()
         }
         row4.addView(spaceBtn)
 
-        row4.addView(createKeyButton(".", 1.0f) { handleCharInput(".") })
+        row4.addView(createKeyButton(".", 0.9f) { handleCharInput(".") })
 
-        row4.addView(createEnterButton(1.6f))
+        row4.addView(createEnterButton(1.7f))
     }
 
     private fun handleCharInput(char: String) {
@@ -741,6 +763,32 @@ class KeyboardView(
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             setOnClickListener {
                 onEnterClicked?.invoke()
+            }
+        }
+
+        val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight).apply {
+            setMargins(3, 0, 3, 0)
+        }
+        btn.layoutParams = params
+        return btn
+    }
+
+    private fun createScanButton(weight: Float): View {
+        val accentColor = if (isDarkMode) {
+            ContextCompat.getColor(context, R.color.heliboard_accent)
+        } else {
+            ContextCompat.getColor(context, R.color.heliboard_accent_light)
+        }
+
+        val btn = ImageButton(context).apply {
+            setImageResource(R.drawable.ic_scan)
+            setColorFilter(Color.WHITE)
+            background = createKeyDrawable(accentColor, 0x80FFFFFF.toInt(), 6f)
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            setPadding(0, 0, 0, 0)
+            contentDescription = "Buka Kamera Scan"
+            setOnClickListener {
+                toggleScanner()
             }
         }
 
