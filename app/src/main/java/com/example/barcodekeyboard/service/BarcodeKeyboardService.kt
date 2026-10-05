@@ -19,6 +19,7 @@ import com.example.barcodekeyboard.core.camera.CameraManager
 import com.example.barcodekeyboard.core.feedback.BeepSoundManager
 import com.example.barcodekeyboard.core.feedback.VibrationHelper
 import com.example.barcodekeyboard.core.input.InputTextHandler
+import com.example.barcodekeyboard.data.model.ScanResult
 import com.example.barcodekeyboard.data.preferences.KeyboardPreferences
 import com.example.barcodekeyboard.ui.keyboard.KeyboardView
 import com.example.barcodekeyboard.ui.settings.SettingsActivity
@@ -146,6 +147,26 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         view.onViewfinderTapped = {
             triggerKeyHaptic()
             scheduleScanTimeout(3500L, "Tidak ada barcode terdeteksi")
+        }
+
+        view.onBarcodeItemSelected = { item ->
+            if (preferences.isSoundEnabled) {
+                beepSoundManager.playSuccessBeep()
+            }
+            if (preferences.isVibrationEnabled) {
+                vibrationHelper.vibrateSuccess()
+            }
+            val scanResult = ScanResult(
+                text = item.code,
+                format = 0,
+                timestamp = System.currentTimeMillis()
+            )
+            inputTextHandler.commitScanResult(
+                inputConnection = currentInputConnection,
+                scanResult = scanResult,
+                preferences = preferences
+            )
+            keyboardView?.showScannedFeedback("${item.name} (${item.code})")
         }
 
         return view.rootView
