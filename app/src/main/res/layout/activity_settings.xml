@@ -38,26 +38,67 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Langkah Aktivasi Keyboard"
-                        android:textAppearance="?attr/textAppearanceHeadline6"
-                        android:textSize="16sp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Status &amp; Aktivasi Keyboard"
+                            android:textAppearance="?attr/textAppearanceHeadline6"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/tvActivationStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_status_badge"
+                            android:paddingStart="8dp"
+                            android:paddingTop="3dp"
+                            android:paddingEnd="8dp"
+                            android:paddingBottom="3dp"
+                            android:text="Belum Aktif"
+                            android:textColor="#FFFFFF"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvActivationGuide"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Ikuti 2 langkah mudah di bawah ini agar One Keyboard siap digunakan."
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnEnableKeyboard"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="@string/enable_keyboard_title" />
+                        android:text="Langkah 1: Aktifkan di Pengaturan HP" />
+
+                    <TextView
+                        android:id="@+id/tvEnableHint"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginStart="4dp"
+                        android:text="💡 Ketuk tombol di atas lalu geser sakelar (toggle) 'One Keyboard' menjadi AKTIF (ON)."
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="11sp" />
 
                     <Button
                         android:id="@+id/btnSelectKeyboard"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/select_keyboard_title" />
+                        android:layout_marginTop="10dp"
+                        android:text="Langkah 2: Pilih Metode Masukan" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

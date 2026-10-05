@@ -61,9 +61,19 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    private lateinit var btnEnableKeyboard: Button
+    private lateinit var btnSelectKeyboard: Button
+    private var tvActivationStatus: TextView? = null
+    private var tvActivationGuide: TextView? = null
+    private var tvEnableHint: TextView? = null
+
     private fun setupButtons() {
-        val btnEnable: Button = findViewById(R.id.btnEnableKeyboard)
-        val btnSelect: Button = findViewById(R.id.btnSelectKeyboard)
+        btnEnableKeyboard = findViewById(R.id.btnEnableKeyboard)
+        btnSelectKeyboard = findViewById(R.id.btnSelectKeyboard)
+        tvActivationStatus = findViewById(R.id.tvActivationStatus)
+        tvActivationGuide = findViewById(R.id.tvActivationGuide)
+        tvEnableHint = findViewById(R.id.tvEnableHint)
+
         val btnClear: Button? = findViewById(R.id.btnClearTestInput)
         val etTestInput: EditText? = findViewById(R.id.etTestInput)
         val btnTestSuccess: Button? = findViewById(R.id.btnTestSuccess)
@@ -72,16 +82,32 @@ class SettingsActivity : AppCompatActivity() {
         val beepManager = BeepSoundManager(this)
         val vibrationHelper = VibrationHelper(this)
 
-        btnEnable.setOnClickListener {
+        btnEnableKeyboard.setOnClickListener {
             val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
         }
 
-        btnSelect.setOnClickListener {
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-            imm?.showInputMethodPicker()
+        btnSelectKeyboard.setOnClickListener {
+            if (!isKeyboardEnabled()) {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("One Keyboard Belum Aktif")
+                    .setMessage("Sebelum memilih One Keyboard di popup metode masukan, Anda perlu mengaktifkan sakelarnya (toggle) terlebih dahulu di Pengaturan Sistem.\n\nBuka Pengaturan Sistem sekarang?")
+                    .setPositiveButton("Buka Pengaturan") { _, _ ->
+                        val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        startActivity(intent)
+                    }
+                    .setNegativeButton("Batal", null)
+                    .show()
+            } else {
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                imm?.showInputMethodPicker()
+            }
         }
+
+        updateActivationUI()
 
         btnClear?.setOnClickListener {
             etTestInput?.text?.clear()
@@ -129,7 +155,58 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        updateActivationUI()
         updateClipboardCount()
+    }
+
+    private fun isKeyboardEnabled(): Boolean {
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager ?: return false
+        val enabledMethods = imm.enabledInputMethodList
+        return enabledMethods.any { it.packageName == packageName }
+    }
+
+    private fun isKeyboardSelected(): Boolean {
+        val currentIme = Settings.Secure.getString(
+            contentResolver,
+            Settings.Secure.DEFAULT_INPUT_METHOD
+        )
+        return currentIme != null && currentIme.contains(packageName)
+    }
+
+    private fun updateActivationUI() {
+        if (!::btnEnableKeyboard.isInitialized || !::btnSelectKeyboard.isInitialized) return
+
+        val enabled = isKeyboardEnabled()
+        val selected = isKeyboardSelected()
+
+        if (!enabled) {
+            tvActivationStatus?.text = "Belum Aktif"
+            (tvActivationStatus?.background as? android.graphics.drawable.GradientDrawable)?.setColor(
+                android.graphics.Color.parseColor("#E53935")
+            )
+            tvActivationGuide?.text = "Langkah 1: Aktifkan terlebih dahulu One Keyboard di pengaturan sistem HP Anda."
+            tvEnableHint?.visibility = android.view.View.VISIBLE
+            btnEnableKeyboard.text = "Langkah 1: Aktifkan di Pengaturan HP"
+            btnSelectKeyboard.text = "Langkah 2: Pilih Metode Masukan"
+        } else if (!selected) {
+            tvActivationStatus?.text = "Sudah Aktif di Sistem"
+            (tvActivationStatus?.background as? android.graphics.drawable.GradientDrawable)?.setColor(
+                android.graphics.Color.parseColor("#FB8C00")
+            )
+            tvActivationGuide?.text = "Langkah 2: One Keyboard sudah aktif di sistem! Sekarang ketuk tombol di bawah untuk memilih One Keyboard sebagai keyboard utama."
+            tvEnableHint?.visibility = android.view.View.GONE
+            btnEnableKeyboard.text = "✓ Langkah 1 Selesai (Sudah Diaktifkan)"
+            btnSelectKeyboard.text = "Langkah 2: Pilih One Keyboard Sekarang"
+        } else {
+            tvActivationStatus?.text = "Sedang Digunakan"
+            (tvActivationStatus?.background as? android.graphics.drawable.GradientDrawable)?.setColor(
+                android.graphics.Color.parseColor("#43A047")
+            )
+            tvActivationGuide?.text = "🎉 One Keyboard sudah aktif dan sedang digunakan sebagai papan ketik utama Anda."
+            tvEnableHint?.visibility = android.view.View.GONE
+            btnEnableKeyboard.text = "✓ Langkah 1 Selesai"
+            btnSelectKeyboard.text = "✓ One Keyboard Digunakan (Ganti)"
+        }
     }
 
     private fun updateClipboardCount() {
