@@ -67,6 +67,8 @@ class SettingsActivity : AppCompatActivity() {
     private var tvActivationGuide: TextView? = null
     private var tvEnableHint: TextView? = null
 
+    private var isReturningFromSettings = false
+
     private fun setupButtons() {
         btnEnableKeyboard = findViewById(R.id.btnEnableKeyboard)
         btnSelectKeyboard = findViewById(R.id.btnSelectKeyboard)
@@ -83,6 +85,15 @@ class SettingsActivity : AppCompatActivity() {
         val vibrationHelper = VibrationHelper(this)
 
         btnEnableKeyboard.setOnClickListener {
+            // 1. Try direct programmatic bypass if permission exists
+            if (tryDirectBypass()) {
+                Toast.makeText(this, "✓ One Keyboard berhasil diaktifkan otomatis!", Toast.LENGTH_SHORT).show()
+                updateActivationUI()
+                return@setOnClickListener
+            }
+
+            // 2. Fallback: Open system settings and enable seamless auto-advance on return
+            isReturningFromSettings = true
             val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
@@ -90,10 +101,19 @@ class SettingsActivity : AppCompatActivity() {
 
         btnSelectKeyboard.setOnClickListener {
             if (!isKeyboardEnabled()) {
+                // If direct bypass can activate it, do it immediately
+                if (tryDirectBypass()) {
+                    updateActivationUI()
+                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                    imm?.showInputMethodPicker()
+                    return@setOnClickListener
+                }
+
                 androidx.appcompat.app.AlertDialog.Builder(this)
                     .setTitle("One Keyboard Belum Aktif")
                     .setMessage("Sebelum memilih One Keyboard di popup metode masukan, Anda perlu mengaktifkan sakelarnya (toggle) terlebih dahulu di Pengaturan Sistem.\n\nBuka Pengaturan Sistem sekarang?")
                     .setPositiveButton("Buka Pengaturan") { _, _ ->
+                        isReturningFromSettings = true
                         val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
                             flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         }
@@ -157,6 +177,36 @@ class SettingsActivity : AppCompatActivity() {
         super.onResume()
         updateActivationUI()
         updateClipboardCount()
+
+        // Auto-advance bypass: If user just turned on toggle in settings and returned,
+        // automatically trigger the input method picker so user doesn't need to click Step 2!
+        if (isReturningFromSettings) {
+            isReturningFromSettings = false
+            if (isKeyboardEnabled() && !isKeyboardSelected()) {
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                imm?.showInputMethodPicker()
+            }
+        }
+    }
+
+    /**
+     * Attempts to programmatically enable and select One Keyboard
+     * if WRITE_SECURE_SETTINGS permission has been granted (e.g. via ADB or enterprise MDM).
+     */
+    private fun tryDirectBypass(): Boolean {
+        return try {
+            val myIme = "$packageName/.service.BarcodeKeyboardService"
+            val cr = contentResolver
+            val currentEnabled = Settings.Secure.getString(cr, Settings.Secure.ENABLED_INPUT_METHODS) ?: ""
+            if (!currentEnabled.contains(myIme)) {
+                val newEnabled = if (currentEnabled.isBlank()) myIme else "$currentEnabled:$myIme"
+                Settings.Secure.putString(cr, Settings.Secure.ENABLED_INPUT_METHODS, newEnabled)
+            }
+            Settings.Secure.putString(cr, Settings.Secure.DEFAULT_INPUT_METHOD, myIme)
+            true
+        } catch (e: Throwable) {
+            false
+        }
     }
 
     private fun isKeyboardEnabled(): Boolean {
