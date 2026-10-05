@@ -28,6 +28,14 @@ class InputTextHandler {
     }
 
     /**
+     * Commits full text string (e.g. from clipboard paste or template).
+     */
+    fun commitText(inputConnection: InputConnection?, text: String) {
+        if (inputConnection == null) return
+        inputConnection.commitText(text, 1)
+    }
+
+    /**
      * Commits the scanned barcode result into the active input connection,
      * applying any configured prefix, suffix, and auto-enter.
      */

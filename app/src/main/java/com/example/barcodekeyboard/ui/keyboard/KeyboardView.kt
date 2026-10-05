@@ -21,7 +21,12 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.barcodekeyboard.R
+import com.example.barcodekeyboard.core.clipboard.ClipboardHistoryManager
+import com.example.barcodekeyboard.data.model.ClipboardItem
+import com.example.barcodekeyboard.ui.keyboard.clipboard.ClipboardAdapter
 
 /**
  * Controller and presentation manager for the HeliBoard-inspired keyboard UI.
@@ -57,12 +62,25 @@ class KeyboardView(
     // Toolbar buttons
     private val btnToggleScanner: ImageButton = rootView.findViewById(R.id.btnToggleScanner)
     private val btnFlash: ImageButton = rootView.findViewById(R.id.btnFlash)
+    private val btnClipboard: ImageButton = rootView.findViewById(R.id.btnClipboard)
     private val btnPaste: ImageButton = rootView.findViewById(R.id.btnPaste)
     private val btnCursorLeft: ImageButton = rootView.findViewById(R.id.btnCursorLeft)
     private val btnCursorRight: ImageButton = rootView.findViewById(R.id.btnCursorRight)
     private val btnSettings: ImageButton = rootView.findViewById(R.id.btnSettings)
 
-    // Key rows
+    // Clipboard Panel Views
+    private val clipboardContainer: LinearLayout = rootView.findViewById(R.id.clipboardContainer)
+    private val tvClipboardCount: TextView = rootView.findViewById(R.id.tvClipboardCount)
+    private val btnClearClipboard: Button = rootView.findViewById(R.id.btnClearClipboard)
+    private val btnCloseClipboard: ImageButton = rootView.findViewById(R.id.btnCloseClipboard)
+    private val rvClipboardItems: RecyclerView = rootView.findViewById(R.id.rvClipboardItems)
+    private val tvClipboardEmpty: TextView = rootView.findViewById(R.id.tvClipboardEmpty)
+
+    private val clipboardHistoryManager = ClipboardHistoryManager.getInstance(context)
+    private lateinit var clipboardAdapter: ClipboardAdapter
+
+    // Key rows and keypad container
+    val keypadContainer: LinearLayout = rootView.findViewById(R.id.keypadContainer)
     private val row1: LinearLayout = rootView.findViewById(R.id.row1)
     private val row2: LinearLayout = rootView.findViewById(R.id.row2)
     private val row3: LinearLayout = rootView.findViewById(R.id.row3)
@@ -72,6 +90,8 @@ class KeyboardView(
     var currentMode: KeyboardMode = KeyboardMode.ALPHABET
     var shiftState: ShiftState = ShiftState.OFF
     var isScannerOpen: Boolean = false
+        private set
+    var isClipboardOpen: Boolean = false
         private set
     var isDarkMode: Boolean = true
         private set
@@ -84,6 +104,7 @@ class KeyboardView(
     var onCursorLeftClicked: (() -> Unit)? = null
     var onCursorRightClicked: (() -> Unit)? = null
     var onPasteClicked: (() -> Unit)? = null
+    var onClipboardItemSelected: ((ClipboardItem) -> Unit)? = null
     var onSettingsClicked: (() -> Unit)? = null
     var onScannerToggled: ((Boolean) -> Unit)? = null
     var onFlashClicked: (() -> Unit)? = null
@@ -97,6 +118,7 @@ class KeyboardView(
 
     init {
         setupToolbar()
+        setupClipboard()
         scannerOverlayView.onViewfinderTapped = {
             onViewfinderTapped?.invoke()
         }
@@ -110,6 +132,10 @@ class KeyboardView(
 
         btnFlash.setOnClickListener {
             onFlashClicked?.invoke()
+        }
+
+        btnClipboard.setOnClickListener {
+            toggleClipboard()
         }
 
         btnPaste.setOnClickListener {
@@ -178,19 +204,86 @@ class KeyboardView(
         }
 
         btnToggleScanner.setColorFilter(if (isScannerOpen) accentColor else subTextColor)
+        btnClipboard.setColorFilter(if (isClipboardOpen) accentColor else subTextColor)
         btnPaste.setColorFilter(primaryTextColor)
         btnCursorLeft.setColorFilter(subTextColor)
         btnCursorRight.setColorFilter(subTextColor)
         btnSettings.setColorFilter(subTextColor)
+
+        if (::clipboardAdapter.isInitialized) {
+            clipboardAdapter.updateData(clipboardHistoryManager.getClips(), isDarkMode)
+        }
     }
 
     fun toggleScanner(forceOpen: Boolean? = null) {
         isScannerOpen = forceOpen ?: !isScannerOpen
+        if (isScannerOpen && isClipboardOpen) {
+            toggleClipboard(false)
+        }
         scannerContainer.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
         btnFlash.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
 
         updateToolbarIconColors()
         onScannerToggled?.invoke(isScannerOpen)
+    }
+
+    private fun setupClipboard() {
+        rvClipboardItems.layoutManager = LinearLayoutManager(context)
+        clipboardAdapter = ClipboardAdapter(
+            items = emptyList(),
+            isDarkMode = isDarkMode,
+            onClipClicked = { clip ->
+                onClipboardItemSelected?.invoke(clip)
+            },
+            onPinClicked = { clip ->
+                clipboardHistoryManager.togglePin(clip.id)
+            },
+            onDeleteClicked = { clip ->
+                clipboardHistoryManager.deleteClip(clip.id)
+            }
+        )
+        rvClipboardItems.adapter = clipboardAdapter
+
+        btnCloseClipboard.setOnClickListener {
+            toggleClipboard(false)
+        }
+
+        btnClearClipboard.setOnClickListener {
+            clipboardHistoryManager.clearAll(keepPinned = true)
+        }
+
+        clipboardHistoryManager.addListener {
+            rootView.post {
+                refreshClipboardList()
+            }
+        }
+    }
+
+    fun refreshClipboardList() {
+        val clips = clipboardHistoryManager.getClips()
+        clipboardAdapter.updateData(clips, isDarkMode)
+        tvClipboardCount.text = "(${clips.size})"
+        tvClipboardEmpty.visibility = if (clips.isEmpty()) View.VISIBLE else View.GONE
+        rvClipboardItems.visibility = if (clips.isNotEmpty()) View.VISIBLE else View.GONE
+    }
+
+    fun toggleClipboard(forceOpen: Boolean? = null) {
+        isClipboardOpen = forceOpen ?: !isClipboardOpen
+
+        if (isClipboardOpen) {
+            if (isScannerOpen) {
+                toggleScanner(false)
+            }
+            clipboardContainer.visibility = View.VISIBLE
+            keypadContainer.visibility = View.GONE
+            clipboardHistoryManager.captureCurrentClipboard(context)
+            refreshClipboardList()
+        } else {
+            clipboardContainer.visibility = View.GONE
+            keypadContainer.visibility = View.VISIBLE
+        }
+
+        updateToolbarIconColors()
     }
 
     fun updateFlashIcon(isTorchOn: Boolean) {

@@ -87,6 +87,18 @@
             android:visibility="gone"
             app:tint="@color/heliboard_text" />
 
+        <!-- Clipboard History Button -->
+        <ImageButton
+            android:id="@+id/btnClipboard"
+            android:layout_width="40dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="2dp"
+            android:background="@drawable/bg_toolbar_item"
+            android:contentDescription="Papan Klip"
+            android:padding="7dp"
+            android:src="@drawable/ic_clipboard"
+            app:tint="@color/heliboard_accent" />
+
         <!-- Clipboard Paste Button -->
         <ImageButton
             android:id="@+id/btnPaste"
@@ -187,6 +199,101 @@
             android:layout_height="48dp"
             android:layout_marginTop="5dp"
             android:orientation="horizontal" />
+
+    </LinearLayout>
+
+    <!-- 4. Clipboard History Panel (Papan Klip) -->
+    <LinearLayout
+        android:id="@+id/clipboardContainer"
+        android:layout_width="match_parent"
+        android:layout_height="225dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="10dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_clipboard"
+                app:tint="@color/heliboard_accent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Papan Klip"
+                android:textColor="@color/heliboard_text"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvClipboardCount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:textColor="@color/heliboard_text_sub"
+                android:textSize="12sp"
+                android:text="(0)" />
+
+            <Button
+                android:id="@+id/btnClearClipboard"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Bersihkan"
+                android:textColor="#FF5252"
+                android:textSize="12sp" />
+
+            <ImageButton
+                android:id="@+id/btnCloseClipboard"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_toolbar_item"
+                android:contentDescription="Tutup Papan Klip"
+                android:padding="7dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/heliboard_text" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/heliboard_divider" />
+
+        <!-- Recycler View List of Clips -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvClipboardItems"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:paddingTop="4dp"
+            android:paddingBottom="6dp"
+            android:scrollbars="vertical" />
+
+        <!-- Empty State Notice -->
+        <TextView
+            android:id="@+id/tvClipboardEmpty"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:padding="20dp"
+            android:text="Papan klip kosong.\nTeks yang Anda salin (copy) akan otomatis muncul di sini."
+            android:textAlignment="center"
+            android:textColor="@color/heliboard_text_sub"
+            android:textSize="13sp"
+            android:visibility="gone" />
 
     </LinearLayout>
 

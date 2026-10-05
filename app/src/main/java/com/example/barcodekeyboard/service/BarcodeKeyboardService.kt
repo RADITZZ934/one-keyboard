@@ -16,9 +16,11 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import com.example.barcodekeyboard.core.camera.BarcodeAnalyzer
 import com.example.barcodekeyboard.core.camera.CameraManager
+import com.example.barcodekeyboard.core.clipboard.ClipboardHistoryManager
 import com.example.barcodekeyboard.core.feedback.BeepSoundManager
 import com.example.barcodekeyboard.core.feedback.VibrationHelper
 import com.example.barcodekeyboard.core.input.InputTextHandler
+import com.example.barcodekeyboard.data.model.ClipboardItem
 import com.example.barcodekeyboard.data.preferences.KeyboardPreferences
 import com.example.barcodekeyboard.ui.keyboard.KeyboardView
 import com.example.barcodekeyboard.ui.settings.SettingsActivity
@@ -41,6 +43,7 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
     private lateinit var inputTextHandler: InputTextHandler
     private lateinit var vibrationHelper: VibrationHelper
     private lateinit var beepSoundManager: BeepSoundManager
+    private lateinit var clipboardHistoryManager: ClipboardHistoryManager
 
     private var keyboardView: KeyboardView? = null
     private var cameraManager: CameraManager? = null
@@ -61,6 +64,7 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         inputTextHandler = InputTextHandler()
         vibrationHelper = VibrationHelper(this)
         beepSoundManager = BeepSoundManager(this)
+        clipboardHistoryManager = ClipboardHistoryManager.getInstance(this)
 
         preferences.registerListener(prefChangeListener)
 
@@ -115,7 +119,15 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
 
         view.onPasteClicked = {
             val pasted = inputTextHandler.pasteFromClipboard(this, currentInputConnection)
-            if (pasted) triggerKeyHaptic()
+            if (pasted) {
+                triggerKeyHaptic()
+                clipboardHistoryManager.captureCurrentClipboard(this)
+            }
+        }
+
+        view.onClipboardItemSelected = { clip ->
+            inputTextHandler.commitText(currentInputConnection, clip.text)
+            triggerKeyHaptic()
         }
 
         // 2. Barcode Scanner Controls
@@ -201,6 +213,10 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         if (keyboardView?.isDarkMode != isDark) {
             keyboardView?.applyTheme(isDark)
         }
+
+        // Capture current clipboard content and update history
+        clipboardHistoryManager.captureCurrentClipboard(this)
+        keyboardView?.refreshClipboardList()
 
         // If scanner was previously toggled open by user, restart camera
         if (keyboardView?.isScannerOpen == true) {
