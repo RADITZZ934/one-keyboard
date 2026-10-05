@@ -8,15 +8,12 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.os.Handler
 import android.os.Looper
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -24,12 +21,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.barcodekeyboard.R
-import com.example.barcodekeyboard.data.model.BarcodeItem
-import com.example.barcodekeyboard.data.repository.BarcodeItemRepository
-import com.example.barcodekeyboard.ui.catalog.BarcodeItemAdapter
 
 /**
  * Controller and presentation manager for the HeliBoard-inspired keyboard UI.
@@ -64,28 +56,13 @@ class KeyboardView(
 
     // Toolbar buttons
     private val btnToggleScanner: ImageButton = rootView.findViewById(R.id.btnToggleScanner)
-    private val btnCatalog: ImageButton = rootView.findViewById(R.id.btnCatalog)
     private val btnFlash: ImageButton = rootView.findViewById(R.id.btnFlash)
     private val btnPaste: ImageButton = rootView.findViewById(R.id.btnPaste)
     private val btnCursorLeft: ImageButton = rootView.findViewById(R.id.btnCursorLeft)
     private val btnCursorRight: ImageButton = rootView.findViewById(R.id.btnCursorRight)
     private val btnSettings: ImageButton = rootView.findViewById(R.id.btnSettings)
 
-    // Key rows & containers
-    val keypadContainer: LinearLayout = rootView.findViewById(R.id.keypadContainer)
-    val catalogContainer: LinearLayout = rootView.findViewById(R.id.catalogContainer)
-    private val etCatalogSearch: EditText = rootView.findViewById(R.id.etCatalogSearch)
-    private val btnClearSearch: ImageButton = rootView.findViewById(R.id.btnClearSearch)
-    private val btnCloseCatalog: ImageButton = rootView.findViewById(R.id.btnCloseCatalog)
-    private val tvCatalogItemCount: TextView = rootView.findViewById(R.id.tvCatalogItemCount)
-    private val rvCatalogItems: RecyclerView = rootView.findViewById(R.id.rvCatalogItems)
-    private val tvCatalogEmpty: TextView = rootView.findViewById(R.id.tvCatalogEmpty)
-
-    private val barcodeItemRepository = BarcodeItemRepository.getInstance(context)
-    private lateinit var catalogAdapter: BarcodeItemAdapter
-    var isCatalogOpen: Boolean = false
-        private set
-
+    // Key rows
     private val row1: LinearLayout = rootView.findViewById(R.id.row1)
     private val row2: LinearLayout = rootView.findViewById(R.id.row2)
     private val row3: LinearLayout = rootView.findViewById(R.id.row3)
@@ -112,7 +89,6 @@ class KeyboardView(
     var onFlashClicked: (() -> Unit)? = null
     var onGrantPermissionClicked: (() -> Unit)? = null
     var onViewfinderTapped: (() -> Unit)? = null
-    var onBarcodeItemSelected: ((BarcodeItem) -> Unit)? = null
 
     // Backspace auto-repeat handler
     private val repeatHandler = Handler(Looper.getMainLooper())
@@ -121,7 +97,6 @@ class KeyboardView(
 
     init {
         setupToolbar()
-        setupCatalog()
         scannerOverlayView.onViewfinderTapped = {
             onViewfinderTapped?.invoke()
         }
@@ -131,10 +106,6 @@ class KeyboardView(
     private fun setupToolbar() {
         btnToggleScanner.setOnClickListener {
             toggleScanner()
-        }
-
-        btnCatalog.setOnClickListener {
-            toggleCatalog()
         }
 
         btnFlash.setOnClickListener {
@@ -162,68 +133,6 @@ class KeyboardView(
         }
     }
 
-    private fun setupCatalog() {
-        rvCatalogItems.layoutManager = LinearLayoutManager(context)
-        catalogAdapter = BarcodeItemAdapter(
-            items = emptyList(),
-            isDarkMode = isDarkMode,
-            onItemClicked = { item ->
-                onBarcodeItemSelected?.invoke(item)
-            }
-        )
-        rvCatalogItems.adapter = catalogAdapter
-
-        etCatalogSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                val query = s?.toString().orEmpty()
-                btnClearSearch.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
-                filterCatalog(query)
-            }
-            override fun afterTextChanged(s: Editable?) {}
-        })
-
-        btnClearSearch.setOnClickListener {
-            etCatalogSearch.text.clear()
-        }
-
-        btnCloseCatalog.setOnClickListener {
-            toggleCatalog(false)
-        }
-
-        barcodeItemRepository.addOnCatalogChangedListener {
-            rootView.post {
-                filterCatalog(etCatalogSearch.text.toString())
-            }
-        }
-    }
-
-    fun filterCatalog(query: String = "") {
-        val results = barcodeItemRepository.searchItems(query)
-        catalogAdapter.updateData(results)
-        tvCatalogItemCount.text = "${results.size} item"
-        tvCatalogEmpty.visibility = if (results.isEmpty()) View.VISIBLE else View.GONE
-        rvCatalogItems.visibility = if (results.isNotEmpty()) View.VISIBLE else View.GONE
-    }
-
-    fun toggleCatalog(forceOpen: Boolean? = null) {
-        isCatalogOpen = forceOpen ?: !isCatalogOpen
-
-        if (isCatalogOpen) {
-            if (isScannerOpen) {
-                toggleScanner(false)
-            }
-            catalogContainer.visibility = View.VISIBLE
-            keypadContainer.visibility = View.GONE
-            filterCatalog(etCatalogSearch.text.toString())
-        } else {
-            catalogContainer.visibility = View.GONE
-            keypadContainer.visibility = View.VISIBLE
-        }
-
-        updateToolbarIconColors()
-    }
-
     /**
      * Applies either Dark Theme or Light Theme dynamically across all UI components.
      */
@@ -244,10 +153,6 @@ class KeyboardView(
 
         rootView.setBackgroundColor(surfaceColor)
         toolbarContainer.setBackgroundColor(toolbarColor)
-        catalogContainer.setBackgroundColor(surfaceColor)
-        if (::catalogAdapter.isInitialized) {
-            catalogAdapter.updateTheme(isDark)
-        }
 
         updateToolbarIconColors()
         renderKeyboard()
@@ -273,7 +178,6 @@ class KeyboardView(
         }
 
         btnToggleScanner.setColorFilter(if (isScannerOpen) accentColor else subTextColor)
-        btnCatalog.setColorFilter(if (isCatalogOpen) accentColor else subTextColor)
         btnPaste.setColorFilter(primaryTextColor)
         btnCursorLeft.setColorFilter(subTextColor)
         btnCursorRight.setColorFilter(subTextColor)
@@ -282,9 +186,6 @@ class KeyboardView(
 
     fun toggleScanner(forceOpen: Boolean? = null) {
         isScannerOpen = forceOpen ?: !isScannerOpen
-        if (isScannerOpen && isCatalogOpen) {
-            toggleCatalog(false)
-        }
         scannerContainer.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
         btnFlash.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
 

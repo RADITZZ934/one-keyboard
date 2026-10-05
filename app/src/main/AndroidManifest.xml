@@ -31,12 +31,6 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".ui.catalog.CatalogActivity"
-            android:exported="false"
-            android:label="Katalog Barcode Item Nonbuah"
-            android:theme="@style/AppTheme.NoActionBar" />
-
         <service
             android:name=".service.BarcodeKeyboardService"
             android:exported="true"

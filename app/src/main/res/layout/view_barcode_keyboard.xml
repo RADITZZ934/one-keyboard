@@ -74,18 +74,6 @@
             android:src="@drawable/ic_scan"
             app:tint="@color/heliboard_accent" />
 
-        <!-- Barcode Item Catalog Button -->
-        <ImageButton
-            android:id="@+id/btnCatalog"
-            android:layout_width="40dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="2dp"
-            android:background="@drawable/bg_toolbar_item"
-            android:contentDescription="Katalog Item Nonbuah"
-            android:padding="7dp"
-            android:src="@drawable/ic_inventory"
-            app:tint="@color/heliboard_accent" />
-
         <!-- Flashlight Button (visible when scanner active) -->
         <ImageButton
             android:id="@+id/btnFlash"
@@ -199,109 +187,6 @@
             android:layout_height="48dp"
             android:layout_marginTop="5dp"
             android:orientation="horizontal" />
-
-    </LinearLayout>
-
-    <!-- 4. Quick Barcode Item Catalog Panel -->
-    <LinearLayout
-        android:id="@+id/catalogContainer"
-        android:layout_width="match_parent"
-        android:layout_height="225dp"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <!-- Search Header Bar -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/ic_search"
-                app:tint="@color/heliboard_accent" />
-
-            <EditText
-                android:id="@+id/etCatalogSearch"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginEnd="6dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_test_input"
-                android:hint="Cari item (cth: Aice, Aqua, Telur)..."
-                android:imeOptions="actionDone"
-                android:inputType="text"
-                android:maxLines="1"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:textColor="@color/test_input_text"
-                android:textColorHint="@color/test_input_hint"
-                android:textCursorDrawable="@drawable/cursor_drawable"
-                android:textSize="13sp" />
-
-            <ImageButton
-                android:id="@+id/btnClearSearch"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Hapus Pencarian"
-                android:padding="6dp"
-                android:src="@drawable/ic_close"
-                android:visibility="gone"
-                app:tint="@color/heliboard_text_sub" />
-
-            <TextView
-                android:id="@+id/tvCatalogItemCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="6dp"
-                android:textColor="@color/heliboard_text_sub"
-                android:textSize="11sp"
-                android:text="466 item" />
-
-            <ImageButton
-                android:id="@+id/btnCloseCatalog"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="@drawable/bg_toolbar_item"
-                android:contentDescription="Tutup Katalog"
-                android:padding="7dp"
-                android:src="@drawable/ic_close"
-                app:tint="@color/heliboard_text" />
-
-        </LinearLayout>
-
-        <!-- Divider line -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/heliboard_divider" />
-
-        <!-- Recycler View List of Items -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvCatalogItems"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:scrollbars="vertical" />
-
-        <!-- Empty State Notice -->
-        <TextView
-            android:id="@+id/tvCatalogEmpty"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="Tidak ada item yang cocok dengan pencarian"
-            android:textColor="@color/heliboard_text_sub"
-            android:textSize="13sp"
-            android:visibility="gone" />
 
     </LinearLayout>
 
