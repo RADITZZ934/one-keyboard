@@ -1,21 +1,36 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ProGuard / R8 Rules for One Keyboard
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve source file & line numbers for clean crash logs
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# 1. Barcode Keyboard Components & Services
+-keep class com.example.barcodekeyboard.service.** { *; }
+-keep class com.example.barcodekeyboard.ui.** { *; }
+-keep class com.example.barcodekeyboard.data.** { *; }
+-keep class com.example.barcodekeyboard.core.** { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# 2. CameraX
+-dontwarn androidx.camera.**
+-keep class androidx.camera.** { *; }
+-keep interface androidx.camera.** { *; }
+-keep class androidx.camera.view.** { *; }
+
+# 3. Google ML Kit Barcode Scanning & Vision
+-dontwarn com.google.mlkit.**
+-keep class com.google.mlkit.** { *; }
+-keep class com.google.android.gms.internal.mlkit_vision_barcode.** { *; }
+-keep class com.google.android.gms.vision.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+
+# 4. Material Components & AndroidX
+-dontwarn com.google.android.material.**
+-keep class com.google.android.material.** { *; }
+-dontwarn androidx.preference.**
+-keep class androidx.preference.** { *; }
+
+# 5. Kotlin Coroutines & Reflection
+-dontwarn kotlinx.coroutines.**
+-keepclassmembers class * {
+    @androidx.annotation.Keep *;
+}
