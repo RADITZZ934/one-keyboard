@@ -201,7 +201,7 @@ class KeyboardView(
 
     fun showScannedFeedback(text: String) {
         tvStatus.text = "Hasil: $text"
-        tvStatus.setTextColor(Color.parseColor("#00E676"))
+        tvStatus.setTextColor(Color.parseColor("#2979FF"))
         tvStatus.animate()
             .scaleX(1.1f).scaleY(1.1f)
             .setDuration(120)

@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#1E1F22</color>
     <color name="colorPrimaryDark">#141517</color>
-    <color name="colorAccent">#00E676</color>
+    <color name="colorAccent">#2979FF</color>
     
     <!-- HeliBoard Dark Theme Palette -->
     <color name="heliboard_surface">#1E1F22</color>
@@ -10,8 +10,8 @@
     <color name="heliboard_key_bg">#2B2D31</color>
     <color name="heliboard_key_pressed">#3F4147</color>
     <color name="heliboard_key_function">#232428</color>
-    <color name="heliboard_accent">#00E676</color>
-    <color name="heliboard_accent_blue">#5865F2</color>
+    <color name="heliboard_accent">#2979FF</color>
+    <color name="heliboard_accent_blue">#2979FF</color>
     <color name="heliboard_text">#F2F3F5</color>
     <color name="heliboard_text_sub">#949BA4</color>
     <color name="heliboard_divider">#313338</color>
@@ -22,7 +22,7 @@
     <color name="heliboard_key_bg_light">#FFFFFF</color>
     <color name="heliboard_key_pressed_light">#CFD4DC</color>
     <color name="heliboard_key_function_light">#DDE1E6</color>
-    <color name="heliboard_accent_light">#00C853</color>
+    <color name="heliboard_accent_light">#2043BA</color>
     <color name="heliboard_text_light">#1A1C1E</color>
     <color name="heliboard_text_sub_light">#5F6368</color>
     <color name="heliboard_divider_light">#CFD4DC</color>
@@ -32,13 +32,13 @@
     <color name="keyboard_control_bar">#232428</color>
     <color name="keyboard_button_bg">#2B2D31</color>
     <color name="keyboard_button_pressed">#3F4147</color>
-    <color name="keyboard_button_accent">#00E676</color>
+    <color name="keyboard_button_accent">#2979FF</color>
     <color name="keyboard_text_primary">#F2F3F5</color>
     <color name="keyboard_text_secondary">#949BA4</color>
     
     <!-- Scanner Overlay Colors -->
-    <color name="scanner_reticle_corner">#00E676</color>
-    <color name="scanner_laser">#00E676</color>
+    <color name="scanner_reticle_corner">#2979FF</color>
+    <color name="scanner_laser">#2979FF</color>
     <color name="scanner_mask">#44000000</color>
 
     <!-- Live Test Area Colors (Default / Light) -->

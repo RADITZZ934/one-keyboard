@@ -26,20 +26,20 @@ class ScannerOverlayView @JvmOverloads constructor(
     }
 
     private val cornerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#00E676")
+        color = Color.parseColor("#2979FF")
         strokeWidth = 6f
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
     }
 
     private val laserPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#00E676")
+        color = Color.parseColor("#2979FF")
         strokeWidth = 3f
         style = Paint.Style.STROKE
     }
 
     private val laserGlowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#4400E676")
+        color = Color.parseColor("#442979FF")
         strokeWidth = 10f
         style = Paint.Style.STROKE
     }

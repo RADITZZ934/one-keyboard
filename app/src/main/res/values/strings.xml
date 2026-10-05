@@ -1,12 +1,12 @@
 <resources>
-    <string name="app_name">Barcode Keyboard</string>
-    <string name="settings_title">Pengaturan Barcode Keyboard</string>
+    <string name="app_name">One Keyboard</string>
+    <string name="settings_title">Pengaturan One Keyboard</string>
     <string name="grant_camera_permission">Izinkan Akses Kamera</string>
     <string name="camera_permission_required">Aplikasi ini membutuhkan izin kamera untuk memindai barcode dan kode QR.</string>
     <string name="enable_keyboard_title">Aktifkan Papan Ketik</string>
-    <string name="enable_keyboard_summary">Buka pengaturan sistem untuk mengaktifkan Barcode Keyboard</string>
+    <string name="enable_keyboard_summary">Buka pengaturan sistem untuk mengaktifkan One Keyboard</string>
     <string name="select_keyboard_title">Pilih Papan Ketik Aktif</string>
-    <string name="select_keyboard_summary">Ganti keyboard utama menjadi Barcode Keyboard</string>
+    <string name="select_keyboard_summary">Ganti keyboard utama menjadi One Keyboard</string>
     
     <!-- Appearance / Theme Preferences -->
     <string name="pref_category_appearance">Tampilan &amp; Tema</string>
