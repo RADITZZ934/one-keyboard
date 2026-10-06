@@ -53,22 +53,12 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         preferences = KeyboardPreferences(this)
-        val initialNightMode = when (preferences.themeMode) {
-            KeyboardPreferences.THEME_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
-            KeyboardPreferences.THEME_DARK -> AppCompatDelegate.MODE_NIGHT_YES
-            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-        }
-        AppCompatDelegate.setDefaultNightMode(initialNightMode)
+        applySavedNightMode()
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        // Clean light status bar matching cream background
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            window.statusBarColor = getColor(R.color.bento_bg)
-            window.decorView.systemUiVisibility =
-                window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        }
+        applyStatusBarTheme()
 
         historyManager = ScanHistoryManager.getInstance(this)
         beepSoundManager = BeepSoundManager(this)
@@ -82,8 +72,34 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        applySavedNightMode()
+        applyStatusBarTheme()
         updateActivationState()
         refreshScanHistory()
+    }
+
+    private fun applySavedNightMode() {
+        val nightMode = when (preferences.themeMode) {
+            KeyboardPreferences.THEME_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
+            KeyboardPreferences.THEME_DARK -> AppCompatDelegate.MODE_NIGHT_YES
+            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        }
+        if (AppCompatDelegate.getDefaultNightMode() != nightMode) {
+            AppCompatDelegate.setDefaultNightMode(nightMode)
+        }
+    }
+
+    private fun applyStatusBarTheme() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            window.statusBarColor = androidx.core.content.ContextCompat.getColor(this, R.color.bento_bg)
+            val isNight = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+            val decor = window.decorView
+            decor.systemUiVisibility = if (isNight) {
+                decor.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+            } else {
+                decor.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+        }
     }
 
     private fun initViews() {

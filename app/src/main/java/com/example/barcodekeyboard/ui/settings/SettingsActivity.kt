@@ -2,6 +2,7 @@ package com.example.barcodekeyboard.ui.settings
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -61,12 +62,7 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        // Light status bar
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            window.statusBarColor = getColor(R.color.bento_bg)
-            window.decorView.systemUiVisibility =
-                window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-        }
+        applyStatusBarTheme()
 
         initViews()
         setupNavigation()
@@ -82,6 +78,19 @@ class SettingsActivity : AppCompatActivity() {
             else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
         }
         AppCompatDelegate.setDefaultNightMode(nightMode)
+    }
+
+    private fun applyStatusBarTheme() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            window.statusBarColor = ContextCompat.getColor(this, R.color.bento_bg)
+            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val decor = window.decorView
+            decor.systemUiVisibility = if (isNight) {
+                decor.systemUiVisibility and View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR.inv()
+            } else {
+                decor.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+            }
+        }
     }
 
     private fun initViews() {
@@ -130,22 +139,36 @@ class SettingsActivity : AppCompatActivity() {
             .putString(KeyboardPreferences.KEY_THEME, mode)
             .apply()
 
-        updateThemeSelectionUI()
-
         val nightMode = when (mode) {
             KeyboardPreferences.THEME_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
             KeyboardPreferences.THEME_DARK -> AppCompatDelegate.MODE_NIGHT_YES
             else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
         }
         AppCompatDelegate.setDefaultNightMode(nightMode)
+        updateThemeSelectionUI()
+        applyStatusBarTheme()
         Toast.makeText(this, "Tema berhasil diubah", Toast.LENGTH_SHORT).show()
     }
 
     private fun updateThemeSelectionUI() {
         val currentTheme = preferences.themeMode
-        ivCheckDark.visibility = if (currentTheme == KeyboardPreferences.THEME_DARK) View.VISIBLE else View.GONE
-        ivCheckLight.visibility = if (currentTheme == KeyboardPreferences.THEME_LIGHT) View.VISIBLE else View.GONE
-        ivCheckSystem.visibility = if (currentTheme == KeyboardPreferences.THEME_SYSTEM) View.VISIBLE else View.GONE
+        val isDark = currentTheme == KeyboardPreferences.THEME_DARK
+        val isLight = currentTheme == KeyboardPreferences.THEME_LIGHT
+        val isSystem = currentTheme == KeyboardPreferences.THEME_SYSTEM
+
+        cardThemeDark.setBackgroundResource(
+            if (isDark) R.drawable.bg_bento_theme_card_selected else R.drawable.bg_bento_theme_card_unselected
+        )
+        cardThemeLight.setBackgroundResource(
+            if (isLight) R.drawable.bg_bento_theme_card_selected else R.drawable.bg_bento_theme_card_unselected
+        )
+        cardThemeSystem.setBackgroundResource(
+            if (isSystem) R.drawable.bg_bento_theme_card_selected else R.drawable.bg_bento_theme_card_unselected
+        )
+
+        ivCheckDark.visibility = if (isDark) View.VISIBLE else View.GONE
+        ivCheckLight.visibility = if (isLight) View.VISIBLE else View.GONE
+        ivCheckSystem.visibility = if (isSystem) View.VISIBLE else View.GONE
     }
 
     private fun setupScannerSection() {

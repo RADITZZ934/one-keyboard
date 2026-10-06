@@ -122,20 +122,24 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="6dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_bento_input_dark"
+                        android:background="@drawable/bg_bento_theme_card_unselected"
                         android:clickable="true"
                         android:focusable="true"
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="12dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🌙"
-                            android:textSize="20sp" />
+                        <ImageView
+                            android:id="@+id/ivIconDark"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_bento_pill_dark"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_theme_dark"
+                            app:tint="@color/bento_text_white" />
 
                         <TextView
+                            android:id="@+id/tvLabelDark"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
@@ -162,20 +166,24 @@
                         android:layout_marginStart="3dp"
                         android:layout_marginEnd="3dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_bento_input_dark"
+                        android:background="@drawable/bg_bento_theme_card_unselected"
                         android:clickable="true"
                         android:focusable="true"
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="12dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="☀️"
-                            android:textSize="20sp" />
+                        <ImageView
+                            android:id="@+id/ivIconLight"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_bento_pill_dark"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_theme_light"
+                            app:tint="@color/bento_text_white" />
 
                         <TextView
+                            android:id="@+id/tvLabelLight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
@@ -201,20 +209,24 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
-                        android:background="@drawable/bg_bento_input_dark"
+                        android:background="@drawable/bg_bento_theme_card_unselected"
                         android:clickable="true"
                         android:focusable="true"
                         android:gravity="center"
                         android:orientation="vertical"
                         android:padding="12dp">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="📱"
-                            android:textSize="20sp" />
+                        <ImageView
+                            android:id="@+id/ivIconSystem"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_bento_pill_dark"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_theme_system"
+                            app:tint="@color/bento_text_white" />
 
                         <TextView
+                            android:id="@+id/tvLabelSystem"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
@@ -494,10 +506,20 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <ImageView
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="48dp"
                         android:layout_height="48dp"
-                        android:src="@mipmap/ic_launcher_round" />
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="1dp"
+                        app:strokeColor="@color/bento_cream_border">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/app_logo" />
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
                         android:layout_width="0dp"

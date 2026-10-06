@@ -5,4 +5,25 @@
     <color name="test_input_text">#F2F3F5</color>
     <color name="test_input_hint">#949BA4</color>
     <color name="test_input_stroke">#3F4147</color>
+
+    <!-- Modern Bento Theme Palette (Night Mode: Hitam Doff, Deep Surface & Accents) -->
+    <color name="bento_bg">#121214</color>
+    <color name="bento_cream">#1E1E24</color>
+    <color name="bento_cream_card">#1A1A20</color>
+    <color name="bento_cream_border">#2E2E38</color>
+    <color name="bento_matte_black">#18181C</color>
+    <color name="bento_matte_black_card">#1E1E24</color>
+    <color name="bento_matte_black_surface">#282832</color>
+    <color name="bento_matte_black_border">#383846</color>
+    <color name="bento_white">#1C1C22</color>
+    <color name="bento_white_border">#2E2E38</color>
+    <color name="bento_blue">#3B82F6</color>
+    <color name="bento_blue_dark">#2563EB</color>
+    <color name="bento_blue_light">#1E293B</color>
+    <color name="bento_blue_border">#3B82F6</color>
+    <color name="bento_text_primary">#F4F4F5</color>
+    <color name="bento_text_secondary">#A1A1AA</color>
+    <color name="bento_text_muted">#71717A</color>
+    <color name="bento_text_white">#FFFFFF</color>
+    <color name="bento_text_sub_dark">#A1A1AA</color>
 </resources>
