@@ -1,8 +1,5 @@
 package com.example.barcodekeyboard.ui.keyboard
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -16,9 +13,6 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.AccelerateInterpolator
-import android.view.animation.DecelerateInterpolator
-import android.view.animation.PathInterpolator
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -222,124 +216,16 @@ class KeyboardView(
         }
     }
 
-    private var scannerAnimator: ValueAnimator? = null
-
     fun toggleScanner(forceOpen: Boolean? = null) {
-        val shouldOpen = forceOpen ?: !isScannerOpen
-        if (shouldOpen == isScannerOpen && scannerAnimator == null) return
-
-        isScannerOpen = shouldOpen
-
+        isScannerOpen = forceOpen ?: !isScannerOpen
         if (isScannerOpen && isClipboardOpen) {
             toggleClipboard(false)
         }
-
-        scannerAnimator?.cancel()
-        val targetHeight = dpToPx(175f).toInt()
-
-        btnToggleScanner.animate()
-            .scaleX(0.90f).scaleY(0.90f)
-            .setDuration(75)
-            .withEndAction {
-                btnToggleScanner.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
-            }
-            .start()
+        scannerContainer.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
+        btnFlash.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
 
         updateToolbarIconColors()
-
-        if (isScannerOpen) {
-            // Hardware acceleration during transition
-            scannerContainer.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-            scannerContainer.visibility = View.VISIBLE
-            scannerContainer.translationY = 0f
-
-            btnFlash.visibility = View.VISIBLE
-            btnFlash.alpha = 0f
-            btnFlash.animate().alpha(1f).setDuration(220).start()
-
-            val currentH = if (scannerContainer.height in 1 until targetHeight) {
-                scannerContainer.height
-            } else {
-                0
-            }
-            val initialH = currentH
-            val initialAlpha = if (initialH > 0) scannerContainer.alpha else 0f
-
-            val distanceRatio = (targetHeight - initialH).toFloat() / targetHeight
-            val animDuration = (320 * distanceRatio).toLong().coerceIn(160L, 340L)
-
-            // Start camera early so preview is ready upon full reveal
-            onScannerToggled?.invoke(true)
-
-            // Material Design 3 Emphasized Decelerate (natural smooth landing)
-            val interpolator = PathInterpolator(0.2f, 0.0f, 0.0f, 1.0f)
-
-            val anim = ValueAnimator.ofFloat(0f, 1f).apply {
-                duration = animDuration
-                setInterpolator(interpolator)
-                addUpdateListener { va ->
-                    val fraction = va.animatedValue as Float
-                    val h = (initialH + (targetHeight - initialH) * fraction).toInt()
-                    scannerContainer.layoutParams.height = h
-                    scannerContainer.alpha = (initialAlpha + (1f - initialAlpha) * (fraction * 1.25f)).coerceAtMost(1f)
-                    scannerContainer.requestLayout()
-                }
-                addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator?) {
-                        scannerContainer.layoutParams.height = targetHeight
-                        scannerContainer.alpha = 1.0f
-                        scannerContainer.translationY = 0f
-                        scannerContainer.requestLayout()
-                        scannerContainer.setLayerType(View.LAYER_TYPE_NONE, null)
-                        scannerAnimator = null
-                    }
-                })
-            }
-            scannerAnimator = anim
-            anim.start()
-
-        } else {
-            // Smooth Collapse
-            scannerContainer.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-            btnFlash.animate().alpha(0f).setDuration(160).withEndAction {
-                btnFlash.visibility = View.GONE
-            }.start()
-
-            val initialH = if (scannerContainer.height > 0) scannerContainer.height else targetHeight
-            val initialAlpha = scannerContainer.alpha
-
-            val distanceRatio = initialH.toFloat() / targetHeight
-            val animDuration = (260 * distanceRatio).toLong().coerceIn(140L, 280L)
-
-            // Material Design Emphasized Accelerate
-            val interpolator = PathInterpolator(0.3f, 0.0f, 0.8f, 0.15f)
-
-            val anim = ValueAnimator.ofFloat(0f, 1f).apply {
-                duration = animDuration
-                setInterpolator(interpolator)
-                addUpdateListener { va ->
-                    val fraction = va.animatedValue as Float
-                    val h = (initialH * (1f - fraction)).toInt()
-                    scannerContainer.layoutParams.height = h
-                    scannerContainer.alpha = initialAlpha * (1f - fraction)
-                    scannerContainer.requestLayout()
-                }
-                addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator?) {
-                        scannerContainer.visibility = View.GONE
-                        scannerContainer.layoutParams.height = targetHeight
-                        scannerContainer.alpha = 1.0f
-                        scannerContainer.translationY = 0f
-                        scannerContainer.requestLayout()
-                        scannerContainer.setLayerType(View.LAYER_TYPE_NONE, null)
-                        scannerAnimator = null
-                        onScannerToggled?.invoke(false)
-                    }
-                })
-            }
-            scannerAnimator = anim
-            anim.start()
-        }
+        onScannerToggled?.invoke(isScannerOpen)
     }
 
     private fun setupClipboard() {
@@ -902,13 +788,6 @@ class KeyboardView(
             setPadding(0, 0, 0, 0)
             contentDescription = "Buka Kamera Scan"
             setOnClickListener {
-                it.animate()
-                    .scaleX(0.90f).scaleY(0.90f)
-                    .setDuration(75)
-                    .withEndAction {
-                        it.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
-                    }
-                    .start()
                 toggleScanner()
             }
         }
