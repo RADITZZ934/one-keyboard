@@ -1,28 +1,29 @@
 package com.example.barcodekeyboard.ui.settings
 
 import android.Manifest
-import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.Settings
-import android.view.inputmethod.InputMethodManager
-import android.widget.Button
+import android.view.LayoutInflater
+import android.view.View
 import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.widget.Toolbar
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.barcodekeyboard.R
-import com.example.barcodekeyboard.core.feedback.BeepSoundManager
-import com.example.barcodekeyboard.core.feedback.VibrationHelper
 import com.example.barcodekeyboard.data.preferences.KeyboardPreferences
 
 /**
- * Main Settings and Activation Activity for Barcode Keyboard.
+ * Redesigned Settings Screen with 3 core Bento sections:
+ * 1. Tema (Dark, Light, System)
+ * 2. Pengaturan Scanner (Beep Sound, Vibration, Auto-Enter, Prefix/Suffix)
+ * 3. Info Aplikasi (One Keyboard, Version, ML Kit Engine, Permission)
  */
 class SettingsActivity : AppCompatActivity() {
 
@@ -30,217 +31,222 @@ class SettingsActivity : AppCompatActivity() {
         private const val PERMISSION_REQUEST_CAMERA = 1001
     }
 
+    private lateinit var preferences: KeyboardPreferences
+
+    // Views - Navigation
+    private lateinit var btnSettingsBack: ImageButton
+
+    // Views - Section 1: Tema
+    private lateinit var cardThemeDark: View
+    private lateinit var cardThemeLight: View
+    private lateinit var cardThemeSystem: View
+    private lateinit var ivCheckDark: ImageView
+    private lateinit var ivCheckLight: ImageView
+    private lateinit var ivCheckSystem: ImageView
+
+    // Views - Section 2: Scanner
+    private lateinit var switchScannerSound: SwitchCompat
+    private lateinit var switchScannerVibrate: SwitchCompat
+    private lateinit var switchScannerAutoEnter: SwitchCompat
+    private lateinit var rowPrefixSuffix: View
+    private lateinit var tvPrefixSuffixSummary: TextView
+
+    // Views - Section 3: Info
+    private lateinit var btnCheckCameraPermission: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val preferences = KeyboardPreferences(this)
-        val initialNightMode = when (preferences.themeMode) {
-            KeyboardPreferences.THEME_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
-            KeyboardPreferences.THEME_DARK -> AppCompatDelegate.MODE_NIGHT_YES
-            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-        }
-        AppCompatDelegate.setDefaultNightMode(initialNightMode)
+        preferences = KeyboardPreferences(this)
+        applySavedNightMode()
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
 
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
+        // Light status bar
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            window.statusBarColor = getColor(R.color.bento_bg)
+            window.decorView.systemUiVisibility =
+                window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        }
 
-        setupButtons()
-        checkCameraPermission()
+        initViews()
+        setupNavigation()
+        setupThemeSection()
+        setupScannerSection()
+        setupInfoSection()
+    }
 
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.preferencesContainer, SettingsFragment())
-                .commit()
+    private fun applySavedNightMode() {
+        val nightMode = when (preferences.themeMode) {
+            KeyboardPreferences.THEME_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
+            KeyboardPreferences.THEME_DARK -> AppCompatDelegate.MODE_NIGHT_YES
+            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        }
+        AppCompatDelegate.setDefaultNightMode(nightMode)
+    }
+
+    private fun initViews() {
+        btnSettingsBack = findViewById(R.id.btnSettingsBack)
+
+        cardThemeDark = findViewById(R.id.cardThemeDark)
+        cardThemeLight = findViewById(R.id.cardThemeLight)
+        cardThemeSystem = findViewById(R.id.cardThemeSystem)
+        ivCheckDark = findViewById(R.id.ivCheckDark)
+        ivCheckLight = findViewById(R.id.ivCheckLight)
+        ivCheckSystem = findViewById(R.id.ivCheckSystem)
+
+        switchScannerSound = findViewById(R.id.switchScannerSound)
+        switchScannerVibrate = findViewById(R.id.switchScannerVibrate)
+        switchScannerAutoEnter = findViewById(R.id.switchScannerAutoEnter)
+        rowPrefixSuffix = findViewById(R.id.rowPrefixSuffix)
+        tvPrefixSuffixSummary = findViewById(R.id.tvPrefixSuffixSummary)
+
+        btnCheckCameraPermission = findViewById(R.id.btnCheckCameraPermission)
+    }
+
+    private fun setupNavigation() {
+        btnSettingsBack.setOnClickListener {
+            finish()
         }
     }
 
-    private lateinit var btnEnableKeyboard: Button
-    private lateinit var btnSelectKeyboard: Button
-    private var tvActivationStatus: TextView? = null
-    private var tvActivationGuide: TextView? = null
-    private var tvEnableHint: TextView? = null
+    private fun setupThemeSection() {
+        updateThemeSelectionUI()
 
-    private var isReturningFromSettings = false
-
-    private fun setupButtons() {
-        btnEnableKeyboard = findViewById(R.id.btnEnableKeyboard)
-        btnSelectKeyboard = findViewById(R.id.btnSelectKeyboard)
-        tvActivationStatus = findViewById(R.id.tvActivationStatus)
-        tvActivationGuide = findViewById(R.id.tvActivationGuide)
-        tvEnableHint = findViewById(R.id.tvEnableHint)
-
-        val btnClear: Button? = findViewById(R.id.btnClearTestInput)
-        val etTestInput: EditText? = findViewById(R.id.etTestInput)
-        val btnTestSuccess: Button? = findViewById(R.id.btnTestSuccess)
-        val btnTestFailure: Button? = findViewById(R.id.btnTestFailure)
-
-        val beepManager = BeepSoundManager(this)
-        val vibrationHelper = VibrationHelper(this)
-
-        btnEnableKeyboard.setOnClickListener {
-            // 1. Try direct programmatic bypass if permission exists
-            if (tryDirectBypass()) {
-                Toast.makeText(this, "✓ One Keyboard berhasil diaktifkan otomatis!", Toast.LENGTH_SHORT).show()
-                updateActivationUI()
-                return@setOnClickListener
-            }
-
-            // 2. Fallback: Open system settings and enable seamless auto-advance on return
-            isReturningFromSettings = true
-            val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
+        cardThemeDark.setOnClickListener {
+            setThemeMode(KeyboardPreferences.THEME_DARK)
         }
 
-        btnSelectKeyboard.setOnClickListener {
-            if (!isKeyboardEnabled()) {
-                // If direct bypass can activate it, do it immediately
-                if (tryDirectBypass()) {
-                    updateActivationUI()
-                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                    imm?.showInputMethodPicker()
-                    return@setOnClickListener
-                }
-
-                androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("One Keyboard Belum Aktif")
-                    .setMessage("Sebelum memilih One Keyboard di popup metode masukan, Anda perlu mengaktifkan sakelarnya (toggle) terlebih dahulu di Pengaturan Sistem.\n\nBuka Pengaturan Sistem sekarang?")
-                    .setPositiveButton("Buka Pengaturan") { _, _ ->
-                        isReturningFromSettings = true
-                        val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        }
-                        startActivity(intent)
-                    }
-                    .setNegativeButton("Batal", null)
-                    .show()
-            } else {
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                imm?.showInputMethodPicker()
-            }
+        cardThemeLight.setOnClickListener {
+            setThemeMode(KeyboardPreferences.THEME_LIGHT)
         }
 
-        updateActivationUI()
-
-        btnClear?.setOnClickListener {
-            etTestInput?.text?.clear()
-        }
-
-        btnTestSuccess?.setOnClickListener {
-            beepManager.playSuccessBeep()
-            vibrationHelper.vibrateSuccess()
-            val text = if (etTestInput?.text.isNullOrBlank()) "[✓ SUKSES: 899276111122]" else "\n[✓ SUKSES: 899276111122]"
-            etTestInput?.append(text)
-            Toast.makeText(this, "Bunyi Beep Sukses (Nada Tinggi)", Toast.LENGTH_SHORT).show()
-        }
-
-        btnTestFailure?.setOnClickListener {
-            beepManager.playFailureBeep()
-            vibrationHelper.vibrateFailure()
-            val text = if (etTestInput?.text.isNullOrBlank()) "[✕ GAGAL: Barcode Tidak Terbaca]" else "\n[✕ GAGAL: Barcode Tidak Terbaca]"
-            etTestInput?.append(text)
-            Toast.makeText(this, "Bunyi Beep Gagal (Nada Rendah / Error)", Toast.LENGTH_SHORT).show()
+        cardThemeSystem.setOnClickListener {
+            setThemeMode(KeyboardPreferences.THEME_SYSTEM)
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateActivationUI()
+    private fun setThemeMode(mode: String) {
+        preferences.sharedPreferences.edit()
+            .putString(KeyboardPreferences.KEY_THEME, mode)
+            .apply()
 
-        // Auto-advance bypass: If user just turned on toggle in settings and returned,
-        // automatically trigger the input method picker so user doesn't need to click Step 2!
-        if (isReturningFromSettings) {
-            isReturningFromSettings = false
-            if (isKeyboardEnabled() && !isKeyboardSelected()) {
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-                imm?.showInputMethodPicker()
-            }
+        updateThemeSelectionUI()
+
+        val nightMode = when (mode) {
+            KeyboardPreferences.THEME_LIGHT -> AppCompatDelegate.MODE_NIGHT_NO
+            KeyboardPreferences.THEME_DARK -> AppCompatDelegate.MODE_NIGHT_YES
+            else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        }
+        AppCompatDelegate.setDefaultNightMode(nightMode)
+        Toast.makeText(this, "Tema berhasil diubah", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateThemeSelectionUI() {
+        val currentTheme = preferences.themeMode
+        ivCheckDark.visibility = if (currentTheme == KeyboardPreferences.THEME_DARK) View.VISIBLE else View.GONE
+        ivCheckLight.visibility = if (currentTheme == KeyboardPreferences.THEME_LIGHT) View.VISIBLE else View.GONE
+        ivCheckSystem.visibility = if (currentTheme == KeyboardPreferences.THEME_SYSTEM) View.VISIBLE else View.GONE
+    }
+
+    private fun setupScannerSection() {
+        switchScannerSound.isChecked = preferences.isSoundEnabled
+        switchScannerSound.setOnCheckedChangeListener { _, isChecked ->
+            preferences.sharedPreferences.edit()
+                .putBoolean(KeyboardPreferences.KEY_SOUND, isChecked)
+                .apply()
+        }
+
+        switchScannerVibrate.isChecked = preferences.isVibrationEnabled
+        switchScannerVibrate.setOnCheckedChangeListener { _, isChecked ->
+            preferences.sharedPreferences.edit()
+                .putBoolean(KeyboardPreferences.KEY_VIBRATE, isChecked)
+                .apply()
+        }
+
+        switchScannerAutoEnter.isChecked = preferences.isAutoEnterEnabled
+        switchScannerAutoEnter.setOnCheckedChangeListener { _, isChecked ->
+            preferences.sharedPreferences.edit()
+                .putBoolean(KeyboardPreferences.KEY_AUTO_ENTER, isChecked)
+                .apply()
+        }
+
+        updatePrefixSuffixSummary()
+
+        rowPrefixSuffix.setOnClickListener {
+            showPrefixSuffixDialog()
         }
     }
 
-    /**
-     * Attempts to programmatically enable and select One Keyboard
-     * if WRITE_SECURE_SETTINGS permission has been granted (e.g. via ADB or enterprise MDM).
-     */
-    private fun tryDirectBypass(): Boolean {
-        return try {
-            val myIme = "$packageName/.service.BarcodeKeyboardService"
-            val cr = contentResolver
-            val currentEnabled = Settings.Secure.getString(cr, Settings.Secure.ENABLED_INPUT_METHODS) ?: ""
-            if (!currentEnabled.contains(myIme)) {
-                val newEnabled = if (currentEnabled.isBlank()) myIme else "$currentEnabled:$myIme"
-                Settings.Secure.putString(cr, Settings.Secure.ENABLED_INPUT_METHODS, newEnabled)
-            }
-            Settings.Secure.putString(cr, Settings.Secure.DEFAULT_INPUT_METHOD, myIme)
-            true
-        } catch (e: Throwable) {
-            false
-        }
-    }
-
-    private fun isKeyboardEnabled(): Boolean {
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager ?: return false
-        val enabledMethods = imm.enabledInputMethodList
-        return enabledMethods.any { it.packageName == packageName }
-    }
-
-    private fun isKeyboardSelected(): Boolean {
-        val currentIme = Settings.Secure.getString(
-            contentResolver,
-            Settings.Secure.DEFAULT_INPUT_METHOD
-        )
-        return currentIme != null && currentIme.contains(packageName)
-    }
-
-    private fun updateActivationUI() {
-        if (!::btnEnableKeyboard.isInitialized || !::btnSelectKeyboard.isInitialized) return
-
-        val enabled = isKeyboardEnabled()
-        val selected = isKeyboardSelected()
-
-        if (!enabled) {
-            tvActivationStatus?.text = "Belum Aktif"
-            (tvActivationStatus?.background as? android.graphics.drawable.GradientDrawable)?.setColor(
-                android.graphics.Color.parseColor("#E53935")
-            )
-            tvActivationGuide?.text = "Langkah 1: Aktifkan terlebih dahulu One Keyboard di pengaturan sistem HP Anda."
-            tvEnableHint?.visibility = android.view.View.VISIBLE
-            btnEnableKeyboard.text = "Langkah 1: Aktifkan di Pengaturan HP"
-            btnSelectKeyboard.text = "Langkah 2: Pilih Metode Masukan"
-        } else if (!selected) {
-            tvActivationStatus?.text = "Sudah Aktif di Sistem"
-            (tvActivationStatus?.background as? android.graphics.drawable.GradientDrawable)?.setColor(
-                android.graphics.Color.parseColor("#FB8C00")
-            )
-            tvActivationGuide?.text = "Langkah 2: One Keyboard sudah aktif di sistem! Sekarang ketuk tombol di bawah untuk memilih One Keyboard sebagai keyboard utama."
-            tvEnableHint?.visibility = android.view.View.GONE
-            btnEnableKeyboard.text = "✓ Langkah 1 Selesai (Sudah Diaktifkan)"
-            btnSelectKeyboard.text = "Langkah 2: Pilih One Keyboard Sekarang"
+    private fun updatePrefixSuffixSummary() {
+        val prefix = preferences.prefix
+        val suffix = preferences.suffix
+        if (prefix.isEmpty() && suffix.isEmpty()) {
+            tvPrefixSuffixSummary.text = "Tidak ada awalan / akhiran"
         } else {
-            tvActivationStatus?.text = "Sedang Digunakan"
-            (tvActivationStatus?.background as? android.graphics.drawable.GradientDrawable)?.setColor(
-                android.graphics.Color.parseColor("#43A047")
-            )
-            tvActivationGuide?.text = "🎉 One Keyboard sudah aktif dan sedang digunakan sebagai papan ketik utama Anda."
-            tvEnableHint?.visibility = android.view.View.GONE
-            btnEnableKeyboard.text = "✓ Langkah 1 Selesai"
-            btnSelectKeyboard.text = "✓ One Keyboard Digunakan (Ganti)"
+            val p = if (prefix.isEmpty()) "-" else "\"$prefix\""
+            val s = if (suffix.isEmpty()) "-" else "\"$suffix\""
+            tvPrefixSuffixSummary.text = "Awalan: $p • Akhiran: $s"
         }
     }
 
-    private fun checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(
+    private fun showPrefixSuffixDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_prefix_suffix, null)
+        val etPrefix = dialogView.findViewById<EditText>(R.id.etDialogPrefix)
+        val etSuffix = dialogView.findViewById<EditText>(R.id.etDialogSuffix)
+
+        etPrefix.setText(preferences.prefix)
+        etSuffix.setText(preferences.suffix)
+
+        AlertDialog.Builder(this)
+            .setTitle("Atur Awalan & Akhiran")
+            .setView(dialogView)
+            .setPositiveButton("Simpan") { _, _ ->
+                val newPrefix = etPrefix.text.toString()
+                val newSuffix = etSuffix.text.toString()
+                preferences.sharedPreferences.edit()
+                    .putString(KeyboardPreferences.KEY_PREFIX, newPrefix)
+                    .putString(KeyboardPreferences.KEY_SUFFIX, newSuffix)
+                    .apply()
+                updatePrefixSuffixSummary()
+                Toast.makeText(this, "Format berhasil disimpan", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun setupInfoSection() {
+        updateCameraPermissionButton()
+
+        btnCheckCameraPermission.setOnClickListener {
+            val hasPermission = ContextCompat.checkSelfPermission(
                 this,
                 Manifest.permission.CAMERA
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.CAMERA),
-                PERMISSION_REQUEST_CAMERA
-            )
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasPermission) {
+                Toast.makeText(this, "✓ Izin kamera sudah aktif!", Toast.LENGTH_SHORT).show()
+            } else {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.CAMERA),
+                    PERMISSION_REQUEST_CAMERA
+                )
+            }
+        }
+    }
+
+    private fun updateCameraPermissionButton() {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            btnCheckCameraPermission.text = "✓ Izin Kamera Aktif"
+            btnCheckCameraPermission.setTextColor(getColor(R.color.bento_blue))
+        } else {
+            btnCheckCameraPermission.text = "Izinkan Akses Kamera"
+            btnCheckCameraPermission.setTextColor(getColor(R.color.bento_text_white))
         }
     }
 
@@ -251,15 +257,7 @@ class SettingsActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == PERMISSION_REQUEST_CAMERA) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Izin kamera berhasil diberikan", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(
-                    this,
-                    "Izin kamera dibutuhkan agar keyboard bisa memindai barcode",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+            updateCameraPermissionButton()
         }
     }
 }

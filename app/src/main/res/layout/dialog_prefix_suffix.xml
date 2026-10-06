@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-bold"
+        android:text="Awalan (Prefix)"
+        android:textColor="@color/bento_text_primary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="Teks yang otomatis disisipkan sebelum barcode"
+        android:textColor="@color/bento_text_secondary"
+        android:textSize="11sp" />
+
+    <EditText
+        android:id="@+id/etDialogPrefix"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_test_input"
+        android:hint="Contoh: CODE-"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:singleLine="true"
+        android:textColor="@color/bento_text_primary"
+        android:textSize="14sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-bold"
+        android:text="Akhiran (Suffix)"
+        android:textColor="@color/bento_text_primary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="Teks yang otomatis disisipkan setelah barcode"
+        android:textColor="@color/bento_text_secondary"
+        android:textSize="11sp" />
+
+    <EditText
+        android:id="@+id/etDialogSuffix"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_test_input"
+        android:hint="Contoh: ; atau [ENTER]"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:singleLine="true"
+        android:textColor="@color/bento_text_primary"
+        android:textSize="14sp" />
+
+</LinearLayout>

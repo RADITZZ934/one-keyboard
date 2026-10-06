@@ -195,7 +195,7 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
     }
 
     private fun openSettingsActivity() {
-        val intent = Intent(this, SettingsActivity::class.java).apply {
+        val intent = Intent(this, com.example.barcodekeyboard.ui.home.HomeActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK
         }
         startActivity(intent)
@@ -261,6 +261,16 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
 
                 // Visual feedback banner & success animation
                 keyboardView?.showScannedFeedback(scanResult.text)
+
+                // Persist to scan history
+                val formatStr = when (scanResult.format) {
+                    com.google.mlkit.vision.barcode.Barcode.FORMAT_QR_CODE -> "QR_CODE"
+                    com.google.mlkit.vision.barcode.Barcode.FORMAT_EAN_13 -> "EAN_13"
+                    com.google.mlkit.vision.barcode.Barcode.FORMAT_CODE_128 -> "CODE_128"
+                    else -> "BARCODE"
+                }
+                com.example.barcodekeyboard.core.history.ScanHistoryManager.getInstance(this@BarcodeKeyboardService)
+                    .addScan(scanResult.text, formatStr)
             },
             onScanFailed = { errorReason ->
                 cancelScanTimeout()

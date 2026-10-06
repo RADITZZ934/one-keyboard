@@ -52,11 +52,20 @@ class KeyboardPreferences(context: Context) {
     val isSoundEnabled: Boolean
         get() = prefs.getBoolean(KEY_SOUND, true)
 
+    val sharedPreferences: SharedPreferences
+        get() = prefs
+
     val prefixText: String
         get() = prefs.getString(KEY_PREFIX, "") ?: ""
 
     val suffixText: String
         get() = prefs.getString(KEY_SUFFIX, "") ?: ""
+
+    val prefix: String
+        get() = prefixText
+
+    val suffix: String
+        get() = suffixText
 
     fun registerListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         prefs.registerOnSharedPreferenceChangeListener(listener)
