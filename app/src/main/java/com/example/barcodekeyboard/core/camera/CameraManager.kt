@@ -32,6 +32,14 @@ class CameraManager(
     private var isTorchEnabled: Boolean = false
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
+    init {
+        try {
+            previewView.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not set COMPATIBLE implementation mode", e)
+        }
+    }
+
     fun startCamera(analyzer: BarcodeAnalyzer, onReady: (() -> Unit)? = null) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 

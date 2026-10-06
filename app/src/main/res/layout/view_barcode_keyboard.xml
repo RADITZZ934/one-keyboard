@@ -13,17 +13,22 @@
         android:layout_width="match_parent"
         android:layout_height="175dp"
         android:background="#000000"
+        android:clipChildren="true"
+        android:clipToPadding="false"
         android:visibility="gone">
 
         <androidx.camera.view.PreviewView
             android:id="@+id/cameraPreviewView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="175dp"
+            android:layout_gravity="bottom"
+            app:implementationMode="compatible" />
 
         <com.example.barcodekeyboard.ui.keyboard.ScannerOverlayView
             android:id="@+id/scannerOverlayView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="175dp"
+            android:layout_gravity="bottom" />
 
         <TextView
             android:id="@+id/tvStatus"
