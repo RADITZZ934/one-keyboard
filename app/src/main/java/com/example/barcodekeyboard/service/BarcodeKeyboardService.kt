@@ -157,7 +157,30 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
 
         view.onViewfinderTapped = {
             triggerKeyHaptic()
-            scheduleScanTimeout(3500L, "Tidak ada barcode terdeteksi")
+            scheduleScanTimeout(4000L, "Tidak ada barcode terdeteksi")
+        }
+
+        view.onFocusRequested = { x, y ->
+            triggerKeyHaptic()
+            view.setStatusText("⚡ Memfokuskan...", isAccent = true)
+            cameraManager?.focusAtPoint(x, y) { success ->
+                view.notifyFocusResult(success)
+            }
+        }
+
+        val handleZoomToggle = {
+            triggerKeyHaptic()
+            val newZoom = cameraManager?.toggleQuickZoom() ?: 1.0f
+            view.updateZoomDisplay(newZoom)
+        }
+        view.onQuickZoomClicked = handleZoomToggle
+        view.onDoubleTapZoom = handleZoomToggle
+
+        view.onPinchZoom = { scaleFactor ->
+            val current = cameraManager?.getZoomRatio() ?: 1.0f
+            val target = current * scaleFactor
+            cameraManager?.setZoomRatio(target)
+            view.updateZoomDisplay(cameraManager?.getZoomRatio() ?: target)
         }
 
         return view.rootView
@@ -288,9 +311,15 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
                 // Visual feedback banner & failure animation
                 keyboardView?.showFailedFeedback(errorReason)
             }
-        )
+        ).apply {
+            onBarcodeTracking = { isTracking ->
+                keyboardView?.setBarcodeTargetLocked(isTracking)
+            }
+        }
 
-        cameraManager?.startCamera(analyzer)
+        cameraManager?.startCamera(analyzer) {
+            keyboardView?.updateZoomDisplay(cameraManager?.getZoomRatio() ?: 1.0f)
+        }
     }
 
     private fun stopCameraScanning() {

@@ -55,6 +55,8 @@ class KeyboardView(
     val scannerContainer: FrameLayout = rootView.findViewById(R.id.scannerContainer)
     val previewView: PreviewView = rootView.findViewById(R.id.cameraPreviewView)
     val scannerOverlayView: ScannerOverlayView = rootView.findViewById(R.id.scannerOverlayView)
+    val btnQuickZoom: TextView = rootView.findViewById(R.id.btnQuickZoom)
+    val btnViewfinderFlash: ImageButton = rootView.findViewById(R.id.btnViewfinderFlash)
     private val tvStatus: TextView = rootView.findViewById(R.id.tvStatus)
     private val btnGrantPermission: Button = rootView.findViewById(R.id.btnGrantPermission)
     private val toolbarContainer: LinearLayout = rootView.findViewById(R.id.toolbarContainer)
@@ -111,6 +113,10 @@ class KeyboardView(
     var onFlashClicked: (() -> Unit)? = null
     var onGrantPermissionClicked: (() -> Unit)? = null
     var onViewfinderTapped: (() -> Unit)? = null
+    var onFocusRequested: ((Float, Float) -> Unit)? = null
+    var onQuickZoomClicked: (() -> Unit)? = null
+    var onDoubleTapZoom: (() -> Unit)? = null
+    var onPinchZoom: ((Float) -> Unit)? = null
 
     // Backspace auto-repeat handler
     private val repeatHandler = Handler(Looper.getMainLooper())
@@ -122,6 +128,21 @@ class KeyboardView(
         setupClipboard()
         scannerOverlayView.onViewfinderTapped = {
             onViewfinderTapped?.invoke()
+        }
+        scannerOverlayView.onFocusRequested = { x, y ->
+            onFocusRequested?.invoke(x, y)
+        }
+        scannerOverlayView.onDoubleTapZoom = {
+            onDoubleTapZoom?.invoke()
+        }
+        scannerOverlayView.onPinchZoom = { factor ->
+            onPinchZoom?.invoke(factor)
+        }
+        btnQuickZoom.setOnClickListener {
+            onQuickZoomClicked?.invoke()
+        }
+        btnViewfinderFlash.setOnClickListener {
+            onFlashClicked?.invoke()
         }
         applyTheme(isDark = true)
     }
@@ -290,6 +311,45 @@ class KeyboardView(
     fun updateFlashIcon(isTorchOn: Boolean) {
         val color = if (isTorchOn) Color.parseColor("#FFD600") else Color.WHITE
         btnFlash.setColorFilter(color)
+        btnViewfinderFlash.setColorFilter(color)
+    }
+
+    fun updateZoomDisplay(ratio: Float) {
+        val formatted = if (ratio >= 1.95f) "2.0x" else if (ratio <= 1.05f) "1.0x" else String.format(java.util.Locale.US, "%.1fx", ratio)
+        btnQuickZoom.text = formatted
+        btnQuickZoom.animate().scaleX(1.15f).scaleY(1.15f).setDuration(100).withEndAction {
+            btnQuickZoom.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+        }.start()
+    }
+
+    fun setStatusText(text: String, isAccent: Boolean = false) {
+        tvStatus.text = text
+        tvStatus.setTextColor(if (isAccent) Color.parseColor("#00E5FF") else Color.WHITE)
+    }
+
+    fun notifyFocusResult(success: Boolean) {
+        scannerOverlayView.notifyFocusResult(success)
+        if (success) {
+            tvStatus.text = "✓ Fokus tajam • Siap memindai"
+            tvStatus.setTextColor(Color.parseColor("#00E676"))
+        } else {
+            tvStatus.text = "Ketuk layar untuk fokus • 2x zoom"
+            tvStatus.setTextColor(Color.WHITE)
+        }
+        tvStatus.postDelayed({
+            if (isScannerOpen) {
+                tvStatus.text = "Ketuk layar untuk fokus • 2x zoom"
+                tvStatus.setTextColor(Color.WHITE)
+            }
+        }, 1800)
+    }
+
+    fun setBarcodeTargetLocked(locked: Boolean) {
+        scannerOverlayView.setBarcodeTargetLocked(locked)
+        if (locked) {
+            tvStatus.text = "🔍 Barcode terdeteksi • Tahan posisi"
+            tvStatus.setTextColor(Color.parseColor("#00E676"))
+        }
     }
 
     fun showPermissionPrompt(show: Boolean) {

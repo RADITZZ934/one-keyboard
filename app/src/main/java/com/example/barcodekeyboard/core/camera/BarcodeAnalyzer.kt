@@ -28,6 +28,8 @@ class BarcodeAnalyzer(
 
     private val scanner: BarcodeScanner
 
+    var onBarcodeTracking: ((Boolean) -> Unit)? = null
+
     private var lastScannedText: String = ""
     private var lastScannedTime: Long = 0L
     private var lastFailureTime: Long = 0L
@@ -54,6 +56,7 @@ class BarcodeAnalyzer(
 
         scanner.process(inputImage)
             .addOnSuccessListener { barcodes ->
+                onBarcodeTracking?.invoke(barcodes.isNotEmpty())
                 val currentTime = System.currentTimeMillis()
                 var hasValidBarcode = false
 
