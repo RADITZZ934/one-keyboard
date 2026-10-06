@@ -272,12 +272,12 @@ class SettingsActivity : AppCompatActivity() {
             Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
 
+        btnCheckCameraPermission.setBackgroundResource(R.drawable.bg_bento_pill_blue)
+        btnCheckCameraPermission.setTextColor(android.graphics.Color.WHITE)
         if (hasPermission) {
             btnCheckCameraPermission.text = "✓ Izin Kamera Aktif"
-            btnCheckCameraPermission.setTextColor(getColor(R.color.bento_blue))
         } else {
             btnCheckCameraPermission.text = "Izinkan Akses Kamera"
-            btnCheckCameraPermission.setTextColor(getColor(R.color.bento_text_white))
         }
     }
 

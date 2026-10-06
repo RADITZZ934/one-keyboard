@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bento_bg"
@@ -171,17 +172,20 @@
             </LinearLayout>
 
             <!-- Action Button -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStep1Enable"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
+                android:layout_height="46dp"
                 android:layout_marginTop="14dp"
-                android:background="@drawable/bg_button_blue"
                 android:fontFamily="sans-serif-black"
                 android:text="1. Buka Pengaturan Keyboard"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
-                android:textSize="13sp" />
+                android:textSize="13sp"
+                app:backgroundTint="@color/bento_blue"
+                app:cornerRadius="14dp"
+                app:elevation="0dp"
+                app:rippleColor="#40FFFFFF" />
         </LinearLayout>
 
         <!-- ==================== STEP 2 CARD: SELECT DEFAULT ==================== -->
@@ -264,17 +268,20 @@
             </LinearLayout>
 
             <!-- Action Button -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStep2Select"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
+                android:layout_height="46dp"
                 android:layout_marginTop="14dp"
-                android:background="@drawable/bg_button_blue"
                 android:fontFamily="sans-serif-black"
                 android:text="2. Pilih One Keyboard"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
-                android:textSize="13sp" />
+                android:textSize="13sp"
+                app:backgroundTint="@color/bento_blue"
+                app:cornerRadius="14dp"
+                app:elevation="0dp"
+                app:rippleColor="#40FFFFFF" />
         </LinearLayout>
 
         <!-- ==================== STEP 3 CARD: CAMERA PERMISSION ==================== -->
@@ -357,17 +364,20 @@
             </LinearLayout>
 
             <!-- Action Button -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStep3Camera"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
+                android:layout_height="46dp"
                 android:layout_marginTop="14dp"
-                android:background="@drawable/bg_button_blue"
                 android:fontFamily="sans-serif-black"
                 android:text="3. Izinkan Akses Kamera"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
-                android:textSize="13sp" />
+                android:textSize="13sp"
+                app:backgroundTint="@color/bento_blue"
+                app:cornerRadius="14dp"
+                app:elevation="0dp"
+                app:rippleColor="#40FFFFFF" />
         </LinearLayout>
 
         <!-- Success Banner (Appears when all steps completed) -->
@@ -402,17 +412,20 @@
         </LinearLayout>
 
         <!-- Primary CTA: Mulai Gunakan Keyboard -->
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFinishSetup"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="22dp"
-            android:background="@drawable/bg_button_blue"
             android:fontFamily="sans-serif-black"
             android:text="Mulai Gunakan Keyboard"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
-            android:textSize="15sp" />
+            android:textSize="15sp"
+            app:backgroundTint="@color/bento_blue"
+            app:cornerRadius="16dp"
+            app:elevation="0dp"
+            app:rippleColor="#40FFFFFF" />
 
         <!-- Skip to Dashboard Link -->
         <TextView

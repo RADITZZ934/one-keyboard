@@ -65,25 +65,25 @@ class SetupActivity : AppCompatActivity() {
     private lateinit var ivStep1NumberBg: ImageView
     private lateinit var tvStep1Number: TextView
     private lateinit var tvStep1StatusBadge: TextView
-    private lateinit var btnStep1Enable: Button
+    private lateinit var btnStep1Enable: com.google.android.material.button.MaterialButton
 
     // Step 2 views
     private lateinit var cardStep2: LinearLayout
     private lateinit var ivStep2NumberBg: ImageView
     private lateinit var tvStep2Number: TextView
     private lateinit var tvStep2StatusBadge: TextView
-    private lateinit var btnStep2Select: Button
+    private lateinit var btnStep2Select: com.google.android.material.button.MaterialButton
 
     // Step 3 views
     private lateinit var cardStep3: LinearLayout
     private lateinit var ivStep3NumberBg: ImageView
     private lateinit var tvStep3Number: TextView
     private lateinit var tvStep3StatusBadge: TextView
-    private lateinit var btnStep3Camera: Button
+    private lateinit var btnStep3Camera: com.google.android.material.button.MaterialButton
 
     // Banner & CTAs
     private lateinit var layoutAllDoneBanner: LinearLayout
-    private lateinit var btnFinishSetup: Button
+    private lateinit var btnFinishSetup: com.google.android.material.button.MaterialButton
     private lateinit var tvSkipSetup: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -210,7 +210,7 @@ class SetupActivity : AppCompatActivity() {
             tvStep1Number.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
             tvStep1StatusBadge.text = "✓ Aktif"
             btnStep1Enable.text = "✓ Buka Pengaturan Keyboard (Aktif)"
-            btnStep1Enable.setBackgroundResource(R.drawable.bg_button_blue)
+            btnStep1Enable.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
             btnStep1Enable.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         } else {
             cardStep1.setBackgroundResource(R.drawable.bg_setup_card_active)
@@ -220,7 +220,7 @@ class SetupActivity : AppCompatActivity() {
             tvStep1StatusBadge.text = "Belum"
             tvStep1StatusBadge.setTextColor(ContextCompat.getColor(this, R.color.bento_text_primary))
             btnStep1Enable.text = "1. Buka Pengaturan Keyboard"
-            btnStep1Enable.setBackgroundResource(R.drawable.bg_button_blue)
+            btnStep1Enable.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
             btnStep1Enable.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         }
 
@@ -233,8 +233,8 @@ class SetupActivity : AppCompatActivity() {
             tvStep2StatusBadge.text = "✓ Default"
             tvStep2StatusBadge.setTextColor(ContextCompat.getColor(this, R.color.bento_blue))
             btnStep2Select.text = "✓ Sudah Menjadi Keyboard Utama"
-            btnStep2Select.setBackgroundResource(R.drawable.bg_button_done)
-            btnStep2Select.setTextColor(ContextCompat.getColor(this, R.color.bento_text_secondary))
+            btnStep2Select.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
+            btnStep2Select.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         } else if (step1Done) {
             // Step 1 is done, so Step 2 is now active!
             cardStep2.setBackgroundResource(R.drawable.bg_setup_card_active)
@@ -244,7 +244,7 @@ class SetupActivity : AppCompatActivity() {
             tvStep2StatusBadge.text = "Perlu Dipilih"
             tvStep2StatusBadge.setTextColor(ContextCompat.getColor(this, R.color.bento_blue))
             btnStep2Select.text = "2. Pilih One Keyboard"
-            btnStep2Select.setBackgroundResource(R.drawable.bg_button_blue)
+            btnStep2Select.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
             btnStep2Select.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         } else {
             // Step 2 is pending Step 1
@@ -255,8 +255,8 @@ class SetupActivity : AppCompatActivity() {
             tvStep2StatusBadge.text = "Tunggu Langkah 1"
             tvStep2StatusBadge.setTextColor(ContextCompat.getColor(this, R.color.bento_text_muted))
             btnStep2Select.text = "2. Pilih One Keyboard"
-            btnStep2Select.setBackgroundResource(R.drawable.bg_button_done)
-            btnStep2Select.setTextColor(ContextCompat.getColor(this, R.color.bento_text_secondary))
+            btnStep2Select.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
+            btnStep2Select.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         }
 
         // Update Step 3 UI
@@ -268,8 +268,8 @@ class SetupActivity : AppCompatActivity() {
             tvStep3StatusBadge.text = "✓ Diizinkan"
             tvStep3StatusBadge.setTextColor(ContextCompat.getColor(this, R.color.bento_blue))
             btnStep3Camera.text = "✓ Akses Kamera Aktif"
-            btnStep3Camera.setBackgroundResource(R.drawable.bg_button_done)
-            btnStep3Camera.setTextColor(ContextCompat.getColor(this, R.color.bento_text_secondary))
+            btnStep3Camera.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
+            btnStep3Camera.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         } else {
             cardStep3.setBackgroundResource(
                 if (step2Done) R.drawable.bg_setup_card_active else R.drawable.bg_bento_white
@@ -287,7 +287,7 @@ class SetupActivity : AppCompatActivity() {
             tvStep3StatusBadge.text = "Perlu Izin"
             tvStep3StatusBadge.setTextColor(ContextCompat.getColor(this, R.color.bento_text_primary))
             btnStep3Camera.text = "3. Izinkan Akses Kamera"
-            btnStep3Camera.setBackgroundResource(R.drawable.bg_button_blue)
+            btnStep3Camera.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
             btnStep3Camera.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         }
 
@@ -301,6 +301,8 @@ class SetupActivity : AppCompatActivity() {
             btnFinishSetup.text = "Lanjut ke Dashboard"
             tvSkipSetup.visibility = View.VISIBLE
         }
+        btnFinishSetup.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
+        btnFinishSetup.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
     }
 
     override fun onRequestPermissionsResult(

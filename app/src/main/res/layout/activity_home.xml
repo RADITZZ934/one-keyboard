@@ -122,7 +122,8 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:src="@drawable/ic_settings" />
+                    android:src="@drawable/ic_settings"
+                    app:tint="#FFFFFF" />
 
                 <TextView
                     android:layout_width="0dp"
@@ -137,7 +138,8 @@
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:src="@drawable/ic_arrow_forward" />
+                    android:src="@drawable/ic_arrow_forward"
+                    app:tint="#FFFFFF" />
             </LinearLayout>
 
             <!-- 2. GRID ITEM 1: TEST FIELD CARD (Hitam Doff / Matte Black) -->
@@ -390,7 +392,8 @@
                     android:layout_height="44dp"
                     android:background="@drawable/bg_circle_translucent_white"
                     android:padding="11dp"
-                    android:src="@drawable/ic_settings" />
+                    android:src="@drawable/ic_settings"
+                    app:tint="#FFFFFF" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -412,7 +415,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="2dp"
                         android:text="Tema • Pengaturan Scanner • Info Aplikasi"
-                        android:textColor="#DCE7FE"
+                        android:textColor="#FFFFFF"
+                        android:alpha="0.85"
                         android:textSize="12sp" />
 
                 </LinearLayout>
@@ -422,7 +426,8 @@
                     android:layout_height="32dp"
                     android:background="@drawable/bg_circle_translucent_white"
                     android:padding="8dp"
-                    android:src="@drawable/ic_arrow_forward" />
+                    android:src="@drawable/ic_arrow_forward"
+                    app:tint="#FFFFFF" />
 
             </LinearLayout>
 
