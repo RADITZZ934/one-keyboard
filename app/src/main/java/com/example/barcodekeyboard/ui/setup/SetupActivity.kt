@@ -209,10 +209,9 @@ class SetupActivity : AppCompatActivity() {
             tvStep1Number.text = "✓"
             tvStep1Number.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
             tvStep1StatusBadge.text = "✓ Aktif"
-            tvStep1StatusBadge.setTextColor(ContextCompat.getColor(this, R.color.bento_blue))
-            btnStep1Enable.text = "✓ Sudah Diaktifkan di Sistem"
-            btnStep1Enable.setBackgroundResource(R.drawable.bg_button_done)
-            btnStep1Enable.setTextColor(ContextCompat.getColor(this, R.color.bento_text_secondary))
+            btnStep1Enable.text = "✓ Buka Pengaturan Keyboard (Aktif)"
+            btnStep1Enable.setBackgroundResource(R.drawable.bg_button_blue)
+            btnStep1Enable.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         } else {
             cardStep1.setBackgroundResource(R.drawable.bg_setup_card_active)
             ivStep1NumberBg.setImageResource(R.drawable.bg_step_circle_blue)
