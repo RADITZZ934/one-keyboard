@@ -1,5 +1,8 @@
 package com.example.barcodekeyboard.ui.keyboard
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -13,6 +16,8 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -216,16 +221,111 @@ class KeyboardView(
         }
     }
 
+    private var scannerAnimator: ValueAnimator? = null
+
     fun toggleScanner(forceOpen: Boolean? = null) {
-        isScannerOpen = forceOpen ?: !isScannerOpen
+        val shouldOpen = forceOpen ?: !isScannerOpen
+        if (shouldOpen == isScannerOpen && scannerAnimator == null) return
+
+        isScannerOpen = shouldOpen
+
         if (isScannerOpen && isClipboardOpen) {
             toggleClipboard(false)
         }
-        scannerContainer.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
-        btnFlash.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
+
+        scannerAnimator?.cancel()
+        val targetHeight = dpToPx(175f).toInt()
+        val slideDistance = dpToPx(16f)
+
+        btnToggleScanner.animate()
+            .scaleX(0.86f).scaleY(0.86f)
+            .setDuration(90)
+            .withEndAction {
+                btnToggleScanner.animate().scaleX(1.0f).scaleY(1.0f).setDuration(130).start()
+            }
+            .start()
 
         updateToolbarIconColors()
-        onScannerToggled?.invoke(isScannerOpen)
+
+        if (isScannerOpen) {
+            // Smooth Expand & Slide-Down Animation (Open)
+            scannerContainer.visibility = View.VISIBLE
+            btnFlash.visibility = View.VISIBLE
+            btnFlash.alpha = 0f
+            btnFlash.animate().alpha(1f).setDuration(220).start()
+
+            val initialHeight = if (scannerContainer.height in 1 until targetHeight) {
+                scannerContainer.height
+            } else {
+                0
+            }
+
+            scannerContainer.layoutParams.height = initialHeight
+            scannerContainer.alpha = if (initialHeight > 0) scannerContainer.alpha else 0.15f
+            scannerContainer.translationY = -slideDistance * (1f - (initialHeight.toFloat() / targetHeight))
+            scannerContainer.requestLayout()
+
+            onScannerToggled?.invoke(true)
+
+            val anim = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 270
+                interpolator = DecelerateInterpolator(1.6f)
+                addUpdateListener { va ->
+                    val fraction = va.animatedValue as Float
+                    val currentHeight = (initialHeight + (targetHeight - initialHeight) * fraction).toInt()
+                    scannerContainer.layoutParams.height = currentHeight
+                    scannerContainer.alpha = 0.15f + (0.85f * fraction)
+                    scannerContainer.translationY = -slideDistance * (1f - fraction)
+                    scannerContainer.requestLayout()
+                }
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator?) {
+                        scannerContainer.layoutParams.height = targetHeight
+                        scannerContainer.alpha = 1.0f
+                        scannerContainer.translationY = 0f
+                        scannerContainer.requestLayout()
+                        scannerAnimator = null
+                    }
+                })
+            }
+            scannerAnimator = anim
+            anim.start()
+
+        } else {
+            // Smooth Collapse & Slide-Up Animation (Close)
+            btnFlash.animate().alpha(0f).setDuration(160).withEndAction {
+                btnFlash.visibility = View.GONE
+            }.start()
+
+            val initialHeight = if (scannerContainer.height > 0) scannerContainer.height else targetHeight
+            val initialAlpha = scannerContainer.alpha
+
+            val anim = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 230
+                interpolator = AccelerateInterpolator(1.4f)
+                addUpdateListener { va ->
+                    val fraction = va.animatedValue as Float
+                    val currentHeight = (initialHeight * (1f - fraction)).toInt()
+                    scannerContainer.layoutParams.height = currentHeight
+                    scannerContainer.alpha = initialAlpha * (1f - fraction)
+                    scannerContainer.translationY = -slideDistance * fraction
+                    scannerContainer.requestLayout()
+                }
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator?) {
+                        scannerContainer.visibility = View.GONE
+                        scannerContainer.layoutParams.height = targetHeight
+                        scannerContainer.alpha = 1.0f
+                        scannerContainer.translationY = 0f
+                        scannerContainer.requestLayout()
+                        scannerAnimator = null
+                        onScannerToggled?.invoke(false)
+                    }
+                })
+            }
+            scannerAnimator = anim
+            anim.start()
+        }
     }
 
     private fun setupClipboard() {
@@ -788,6 +888,13 @@ class KeyboardView(
             setPadding(0, 0, 0, 0)
             contentDescription = "Buka Kamera Scan"
             setOnClickListener {
+                it.animate()
+                    .scaleX(0.86f).scaleY(0.86f)
+                    .setDuration(90)
+                    .withEndAction {
+                        it.animate().scaleX(1.0f).scaleY(1.0f).setDuration(130).start()
+                    }
+                    .start()
                 toggleScanner()
             }
         }
