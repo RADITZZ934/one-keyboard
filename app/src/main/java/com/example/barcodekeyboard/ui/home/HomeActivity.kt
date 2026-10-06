@@ -199,7 +199,32 @@ class HomeActivity : AppCompatActivity() {
         cardActivationAlert.setOnClickListener(activationClickListener)
     }
 
+    private fun tryAutoActivateKeyboard(): Boolean {
+        return try {
+            val cr = contentResolver
+            val myImeId = "$packageName/.service.BarcodeKeyboardService"
+
+            // 1. Enable keyboard in secure settings if not already enabled
+            val enabledImes = Settings.Secure.getString(cr, Settings.Secure.ENABLED_INPUT_METHODS) ?: ""
+            if (!enabledImes.contains(myImeId)) {
+                val updated = if (enabledImes.isEmpty()) myImeId else "$enabledImes:$myImeId"
+                Settings.Secure.putString(cr, Settings.Secure.ENABLED_INPUT_METHODS, updated)
+            }
+
+            // 2. Set as default IME if not already default
+            val currentIme = Settings.Secure.getString(cr, Settings.Secure.DEFAULT_INPUT_METHOD)
+            if (currentIme != myImeId) {
+                Settings.Secure.putString(cr, Settings.Secure.DEFAULT_INPUT_METHOD, myImeId)
+            }
+            true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     private fun updateActivationState() {
+        tryAutoActivateKeyboard()
+
         val isEnabled = isKeyboardEnabled()
         val isSelected = isKeyboardSelected()
 
@@ -219,6 +244,12 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun handleActivationClick() {
+        if (tryAutoActivateKeyboard() && isKeyboardEnabled() && isKeyboardSelected()) {
+            updateActivationState()
+            Toast.makeText(this, "✓ One Keyboard berhasil diaktifkan secara otomatis!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         if (!isKeyboardEnabled()) {
             val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK

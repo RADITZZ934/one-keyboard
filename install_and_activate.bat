@@ -1,6 +1,6 @@
 @echo off
 echo ========================================================
-echo   ONE KEYBOARD - AUTO INSTALL & ZERO-TOUCH ACTIVATION
+echo   ONE KEYBOARD - AUTO INSTALL DAN ZERO-TOUCH ACTIVATION
 echo ========================================================
 echo.
 echo [1/3] Menginstal One Keyboard ke perangkat...
@@ -18,10 +18,6 @@ adb shell ime enable com.example.barcodekeyboard/.service.BarcodeKeyboardService
 echo.
 echo [3/3] Menjadikan One Keyboard sebagai keyboard utama...
 adb shell ime set com.example.barcodekeyboard/.service.BarcodeKeyboardService
-
-echo.
-echo Memberikan izin WRITE_SECURE_SETTINGS untuk bypass otomatis permanen...
-adb shell pm grant com.example.barcodekeyboard android.permission.WRITE_SECURE_SETTINGS 2>nul
 
 echo.
 echo ========================================================
