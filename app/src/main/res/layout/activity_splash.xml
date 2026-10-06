@@ -7,9 +7,8 @@
     <ImageView
         android:id="@+id/ivSplash"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:adjustViewBounds="true"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
         android:contentDescription="@string/app_name"
         android:src="@drawable/splash_screen" />
 
