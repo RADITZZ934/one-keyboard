@@ -1,6 +1,7 @@
 package com.example.barcodekeyboard.ui.settings
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
@@ -54,6 +55,7 @@ class SettingsActivity : AppCompatActivity() {
 
     // Views - Section 3: Info
     private lateinit var btnCheckCameraPermission: TextView
+    private lateinit var btnOpenSetupGuide: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         preferences = KeyboardPreferences(this)
@@ -110,6 +112,7 @@ class SettingsActivity : AppCompatActivity() {
         tvPrefixSuffixSummary = findViewById(R.id.tvPrefixSuffixSummary)
 
         btnCheckCameraPermission = findViewById(R.id.btnCheckCameraPermission)
+        btnOpenSetupGuide = findViewById(R.id.btnOpenSetupGuide)
     }
 
     private fun setupNavigation() {
@@ -255,6 +258,11 @@ class SettingsActivity : AppCompatActivity() {
                     PERMISSION_REQUEST_CAMERA
                 )
             }
+        }
+
+        btnOpenSetupGuide.setOnClickListener {
+            val intent = Intent(this, com.example.barcodekeyboard.ui.setup.SetupActivity::class.java)
+            startActivity(intent)
         }
     }
 

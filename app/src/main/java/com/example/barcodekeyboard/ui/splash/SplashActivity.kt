@@ -85,7 +85,13 @@ class SplashActivity : AppCompatActivity() {
         hasNavigated = true
         handler.removeCallbacks(navigateRunnable)
 
-        val intent = Intent(this, HomeActivity::class.java)
+        val targetClass = if (com.example.barcodekeyboard.ui.setup.SetupActivity.isSetupComplete(this)) {
+            HomeActivity::class.java
+        } else {
+            com.example.barcodekeyboard.ui.setup.SetupActivity::class.java
+        }
+
+        val intent = Intent(this, targetClass)
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         finish()

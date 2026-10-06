@@ -246,22 +246,12 @@ class HomeActivity : AppCompatActivity() {
     private fun handleActivationClick() {
         if (tryAutoActivateKeyboard() && isKeyboardEnabled() && isKeyboardSelected()) {
             updateActivationState()
-            Toast.makeText(this, "✓ One Keyboard berhasil diaktifkan secara otomatis!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "✓ One Keyboard aktif!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (!isKeyboardEnabled()) {
-            val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            startActivity(intent)
-            Toast.makeText(this, "Aktifkan sakelar 'One Keyboard'", Toast.LENGTH_LONG).show()
-        } else if (!isKeyboardSelected()) {
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-            imm?.showInputMethodPicker()
-        } else {
-            Toast.makeText(this, "One Keyboard sudah aktif dan siap digunakan", Toast.LENGTH_SHORT).show()
-        }
+        val intent = Intent(this, com.example.barcodekeyboard.ui.setup.SetupActivity::class.java)
+        startActivity(intent)
     }
 
     private fun isKeyboardEnabled(): Boolean {
