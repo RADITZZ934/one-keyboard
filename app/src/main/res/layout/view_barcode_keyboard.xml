@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/keyboardRoot"
+    android:id="@+id/keyboardOuterFrame"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/heliboard_surface"
-    android:orientation="vertical">
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:id="@+id/keyboardRoot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/heliboard_surface"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="vertical">
 
     <!-- 1. Collapsible Camera Scanner Viewfinder -->
     <FrameLayout
@@ -341,3 +350,39 @@
     </LinearLayout>
 
 </LinearLayout>
+
+    <!-- Overlay Circle Key Highlight / Preview Popup Layer -->
+    <FrameLayout
+        android:id="@+id/keyPreviewOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <FrameLayout
+            android:id="@+id/keyPreviewBubble"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_gravity="top|start"
+            android:clickable="false"
+            android:focusable="false"
+            android:visibility="gone"
+            android:elevation="12dp">
+
+            <TextView
+                android:id="@+id/tvKeyPreviewChar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:text="A"
+                android:textColor="#FFFFFF"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+    </FrameLayout>
+
+</FrameLayout>

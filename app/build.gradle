@@ -3,14 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 34
 
     defaultConfig {
-        applicationId "com.example.barcodekeyboard"
+        applicationId "com.raditzz.onekeyboard"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion 34
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -30,12 +30,22 @@ android {
 
     signingConfigs {
         release {
-            def keystoreFile = file("../barcodekeyboard.jks")
-            if (keystoreFile.exists()) {
-                storeFile keystoreFile
-                storePassword System.getenv("KSTOREPWD")
-                keyAlias "keyboard"
-                keyPassword System.getenv("KSTOREPWD")
+            def keystorePropsFile = rootProject.file("keystore.properties")
+            if (keystorePropsFile.exists()) {
+                def props = new Properties()
+                props.load(new FileInputStream(keystorePropsFile))
+                storeFile file(props['storeFile'])
+                storePassword props['storePassword']
+                keyAlias props['keyAlias']
+                keyPassword props['keyPassword']
+            } else {
+                def keystoreFile = file("../onekeyboard-release.jks")
+                if (keystoreFile.exists()) {
+                    storeFile keystoreFile
+                    storePassword System.getenv("KSTOREPWD") ?: "OneKeyboard@2026!"
+                    keyAlias "onekeyboard"
+                    keyPassword System.getenv("KSTOREPWD") ?: "OneKeyboard@2026!"
+                }
             }
         }
     }
@@ -47,12 +57,7 @@ android {
             }
         }
         release {
-            def keystoreFile = file("../barcodekeyboard.jks")
-            if (keystoreFile.exists()) {
-                signingConfig signingConfigs.release
-            } else {
-                signingConfig signingConfigs.debug
-            }
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

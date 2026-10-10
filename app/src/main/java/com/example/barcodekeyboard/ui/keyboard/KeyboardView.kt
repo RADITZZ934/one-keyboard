@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.OvershootInterpolator
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -52,6 +53,10 @@ class KeyboardView(
     val rootView: View = layoutInflater.inflate(R.layout.view_barcode_keyboard, null)
 
     // Views
+    val keyboardRoot: LinearLayout = rootView.findViewById(R.id.keyboardRoot)
+    val keyPreviewOverlay: FrameLayout = rootView.findViewById(R.id.keyPreviewOverlay)
+    val keyPreviewBubble: FrameLayout = rootView.findViewById(R.id.keyPreviewBubble)
+    val tvKeyPreviewChar: TextView = rootView.findViewById(R.id.tvKeyPreviewChar)
     val scannerContainer: FrameLayout = rootView.findViewById(R.id.scannerContainer)
     val previewView: PreviewView = rootView.findViewById(R.id.cameraPreviewView)
     val scannerOverlayView: ScannerOverlayView = rootView.findViewById(R.id.scannerOverlayView)
@@ -122,6 +127,10 @@ class KeyboardView(
     private val repeatHandler = Handler(Looper.getMainLooper())
     private var repeatRunnable: Runnable? = null
     private var lastShiftClickTime = 0L
+
+    // Circle Key Highlight handler & animations
+    private val previewHandler = Handler(Looper.getMainLooper())
+    private var hidePreviewRunnable: Runnable? = null
 
     init {
         setupToolbar()
@@ -200,9 +209,11 @@ class KeyboardView(
         }
 
         rootView.setBackgroundColor(surfaceColor)
+        keyboardRoot.setBackgroundColor(surfaceColor)
         toolbarContainer.setBackgroundColor(toolbarColor)
 
         updateToolbarIconColors()
+        updatePreviewBubbleStyle()
         renderKeyboard()
     }
 
@@ -238,6 +249,7 @@ class KeyboardView(
     }
 
     fun toggleScanner(forceOpen: Boolean? = null) {
+        hideCircleHighlight(0)
         isScannerOpen = forceOpen ?: !isScannerOpen
         if (isScannerOpen && isClipboardOpen) {
             toggleClipboard(false)
@@ -290,6 +302,7 @@ class KeyboardView(
     }
 
     fun toggleClipboard(forceOpen: Boolean? = null) {
+        hideCircleHighlight(0)
         isClipboardOpen = forceOpen ?: !isClipboardOpen
 
         if (isClipboardOpen) {
@@ -593,6 +606,110 @@ class KeyboardView(
         }
     }
 
+    private fun updatePreviewBubbleStyle() {
+        val bgDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            if (isDarkMode) {
+                // Sleek deep dark surface with glowing vibrant blue / cyan border
+                setColor(Color.parseColor("#1B2332"))
+                setStroke(dpToPx(2.5f).toInt(), Color.parseColor("#00E5FF"))
+            } else {
+                // Crisp white surface with vibrant blue border
+                setColor(Color.parseColor("#FFFFFF"))
+                setStroke(dpToPx(2.5f).toInt(), Color.parseColor("#2563EB"))
+            }
+        }
+        keyPreviewBubble.background = bgDrawable
+
+        if (isDarkMode) {
+            tvKeyPreviewChar.setTextColor(Color.WHITE)
+            tvKeyPreviewChar.setShadowLayer(dpToPx(6f), 0f, 0f, Color.parseColor("#9900E5FF"))
+        } else {
+            tvKeyPreviewChar.setTextColor(Color.parseColor("#1D4ED8"))
+            tvKeyPreviewChar.setShadowLayer(dpToPx(2f), 0f, 0f, Color.parseColor("#33000000"))
+        }
+    }
+
+    private fun showCircleHighlight(keyView: View, char: String) {
+        hidePreviewRunnable?.let {
+            previewHandler.removeCallbacks(it)
+            hidePreviewRunnable = null
+        }
+
+        tvKeyPreviewChar.text = char
+        updatePreviewBubbleStyle()
+
+        val doPosition = {
+            val keyLoc = IntArray(2)
+            val rootLoc = IntArray(2)
+            keyView.getLocationInWindow(keyLoc)
+            rootView.getLocationInWindow(rootLoc)
+
+            val relativeX = (keyLoc[0] - rootLoc[0]).toFloat()
+            val relativeY = (keyLoc[1] - rootLoc[1]).toFloat()
+
+            val bubbleWidth = if (keyPreviewBubble.width > 0) keyPreviewBubble.width.toFloat() else dpToPx(54f)
+            val bubbleHeight = if (keyPreviewBubble.height > 0) keyPreviewBubble.height.toFloat() else dpToPx(54f)
+
+            // Center bubble horizontally above keyView
+            val keyCenterX = relativeX + (keyView.width / 2f)
+            var targetX = keyCenterX - (bubbleWidth / 2f)
+
+            // Keep within horizontal bounds of keyboard
+            val rootWidth = if (rootView.width > 0) rootView.width.toFloat() else context.resources.displayMetrics.widthPixels.toFloat()
+            val margin = dpToPx(4f)
+            targetX = targetX.coerceIn(margin, maxOf(margin, rootWidth - bubbleWidth - margin))
+
+            // Position vertically above the key by 10dp
+            val targetY = maxOf(dpToPx(4f), relativeY - bubbleHeight - dpToPx(10f))
+
+            keyPreviewBubble.translationX = targetX
+            keyPreviewBubble.translationY = targetY
+
+            keyPreviewBubble.visibility = View.VISIBLE
+            keyPreviewBubble.animate().cancel()
+            keyPreviewBubble.alpha = 1.0f
+            keyPreviewBubble.scaleX = 0.5f
+            keyPreviewBubble.scaleY = 0.5f
+            keyPreviewBubble.animate()
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .setDuration(70)
+                .setInterpolator(OvershootInterpolator(1.4f))
+                .start()
+        }
+
+        if (keyView.width > 0 && rootView.width > 0) {
+            doPosition()
+        } else {
+            keyView.post(doPosition)
+        }
+    }
+
+    private fun hideCircleHighlight(delayMs: Long = 75L) {
+        hidePreviewRunnable?.let { previewHandler.removeCallbacks(it) }
+
+        if (delayMs <= 0) {
+            keyPreviewBubble.animate().cancel()
+            keyPreviewBubble.visibility = View.GONE
+            return
+        }
+
+        hidePreviewRunnable = Runnable {
+            keyPreviewBubble.animate().cancel()
+            keyPreviewBubble.animate()
+                .scaleX(0.7f)
+                .scaleY(0.7f)
+                .alpha(0f)
+                .setDuration(60)
+                .withEndAction {
+                    keyPreviewBubble.visibility = View.GONE
+                }
+                .start()
+        }
+        previewHandler.postDelayed(hidePreviewRunnable!!, delayMs)
+    }
+
     private fun createKeyButton(
         text: String,
         weight: Float,
@@ -605,9 +722,9 @@ class KeyboardView(
         }
 
         val pressedColor = if (isDarkMode) {
-            ContextCompat.getColor(context, R.color.heliboard_key_pressed)
+            Color.parseColor("#384860")
         } else {
-            ContextCompat.getColor(context, R.color.heliboard_key_pressed_light)
+            Color.parseColor("#BFDBFE")
         }
 
         val textColor = if (isDarkMode) {
@@ -624,7 +741,43 @@ class KeyboardView(
             background = createKeyDrawable(normalColor, pressedColor, 6f)
             setPadding(0, 0, 0, 0)
             gravity = Gravity.CENTER
-            setOnClickListener { onClick() }
+
+            setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        v.isPressed = true
+                        showCircleHighlight(v, text)
+                        true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val isInside = event.x >= -v.width * 0.4f &&
+                                       event.x <= v.width * 1.4f &&
+                                       event.y >= -v.height * 0.4f &&
+                                       event.y <= v.height * 1.4f
+                        if (!isInside && v.isPressed) {
+                            v.isPressed = false
+                            hideCircleHighlight(delayMs = 0)
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        val wasPressed = v.isPressed
+                        v.isPressed = false
+                        hideCircleHighlight(delayMs = 75)
+                        if (wasPressed) {
+                            v.performClick()
+                            onClick()
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_CANCEL -> {
+                        v.isPressed = false
+                        hideCircleHighlight(delayMs = 0)
+                        true
+                    }
+                    else -> false
+                }
+            }
         }
 
         val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight).apply {
