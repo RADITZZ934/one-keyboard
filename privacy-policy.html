@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kebijakan Privasi - One Keyboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --badge-bg: #dbeafe;
+            --badge-text: #1e40af;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #3b82f6;
+                --primary-dark: #60a5fa;
+                --text-main: #f1f5f9;
+                --text-muted: #94a3b8;
+                --bg-page: #0f172a;
+                --bg-card: #1e293b;
+                --border: #334155;
+                --badge-bg: #1e3a8a;
+                --badge-text: #bfdbfe;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            line-height: 1.65;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 780px;
+            margin: 0 auto;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-top: 32px;
+            margin-bottom: 12px;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        ul {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .highlight-box {
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        .highlight-box p {
+            margin: 0;
+            color: inherit;
+            font-weight: 500;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="badge">Privasi Pengguna</span>
+            <h1>Kebijakan Privasi</h1>
+            <p class="subtitle">Aplikasi: <strong>One Keyboard</strong> (<code>com.raditzz.onekeyboard</code>)<br>Terakhir Diperbarui: 11 Oktober 2026</p>
+        </header>
+
+        <section>
+            <p>
+                Selamat datang di <strong>One Keyboard</strong>. Privasi Anda adalah prioritas utama kami. Dokumen Kebijakan Privasi ini menjelaskan bagaimana aplikasi kami menangani data Anda saat menggunakan layanan keyboard dan pemindai kode kami.
+            </p>
+
+            <div class="highlight-box">
+                <p>
+                    <strong>Ringkasan Singkat:</strong> One Keyboard beroperasi 100% secara offline di perangkat Anda. Kami TIDAK mengumpulkan, TIDAK menyimpan, dan TIDAK pernah mentransmisikan data pengetikan, barcode, riwayat, atau informasi pribadi Anda ke server mana pun di internet.
+                </p>
+            </div>
+
+            <h2>1. Izin Perangkat & Penggunaannya</h2>
+            <p>Untuk menjalankan fungsi utamanya, One Keyboard memerlukan izin berikut:</p>
+            <ul>
+                <li>
+                    <strong>Kamera (<code>android.permission.CAMERA</code>):</strong>
+                    Digunakan secara eksklusif untuk menampilkan jendela pemindai dan membaca Barcode atau QR Code langsung ke kolom teks yang sedang aktif. Pemrosesan visual barcode dilakukan secara instan di memori perangkat menggunakan Google ML Kit. Kamera tidak pernah mengambil foto tersembunyi, tidak pernah merekam video, dan tidak pernah menyimpan rekaman gambar ke penyimpanan perangkat.
+                </li>
+                <li>
+                    <strong>Getar (<code>android.permission.VIBRATE</code>):</strong>
+                    Digunakan semata-mata untuk memberikan umpan balik taktil (haptic feedback) saat tombol keyboard ditekan atau saat kode berhasil terdeteksi.
+                </li>
+            </ul>
+
+            <h2>2. Tidak Memiliki Izin Internet</h2>
+            <p>
+                Aplikasi One Keyboard secara sengaja <strong>tidak meminta izin jaringan/internet (<code>android.permission.INTERNET</code>)</strong> dari sistem operasi Android. Hal ini menjamin secara teknis bahwa aplikasi ini tidak memiliki akses maupun kemampuan untuk mengirimkan data pengetikan, isi barcode, clipboard, atau metadata apa pun ke pihak luar atau server cloud.
+            </p>
+
+            <h2>3. Pengolahan Data Pengetikan & Papan Klip (Clipboard)</h2>
+            <p>
+                Sebagai aplikasi Keyboard (Input Method Editor), segala hal yang Anda ketik dan teks yang Anda simpan di papan klip tetap berada di dalam memori lokal ponsel Anda. One Keyboard tidak menyertakan logger keystroke, analitik perilaku, atau pelacak pengetikan.
+            </p>
+
+            <h2>4. Layanan Pihak Ketiga & Iklan</h2>
+            <p>
+                Aplikasi ini:
+            </p>
+            <ul>
+                <li>Tidak memuat iklan pihak ketiga (Ad-Free).</li>
+                <li>Tidak menggunakan SDK analitik atau pelacak iklan pihak ketiga (seperti Firebase Analytics, Facebook SDK, dll).</li>
+            </ul>
+
+            <h2>5. Privasi Anak-Anak</h2>
+            <p>
+                One Keyboard tidak menargetkan atau secara sengaja mengumpulkan data apa pun dari anak-anak di bawah usia 13 tahun. Karena aplikasi tidak mengumpulkan data pribadi apa pun dari pengguna mana pun, aplikasi ini aman untuk digunakan oleh semua kelompok usia.
+            </p>
+
+            <h2>6. Perubahan pada Kebijakan Privasi</h2>
+            <p>
+                Kebijakan Privasi ini dapat diperbarui sewaktu-waktu seiring dengan pembaruan fitur aplikasi. Setiap perubahan akan dicantumkan secara transparan pada halaman ini dengan tanggal pembaruan terbaru.
+            </p>
+
+            <h2>7. Hubungi Pengembang</h2>
+            <p>
+                Jika Anda memiliki pertanyaan, saran, atau masukan terkait kebijakan privasi ini atau aplikasi One Keyboard, silakan menghubungi pengembang melalui:
+            </p>
+            <ul>
+                <li>Repository GitHub: <a href="https://github.com/RADITZZ934/one-keyboard" target="_blank" rel="noopener">github.com/RADITZZ934/one-keyboard</a></li>
+            </ul>
+        </section>
+
+        <footer>
+            <p>&copy; 2026 One Keyboard. Dilindungi Undang-Undang.</p>
+        </footer>
+    </div>
+</body>
+</html>
