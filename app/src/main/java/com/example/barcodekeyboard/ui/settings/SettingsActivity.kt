@@ -7,9 +7,11 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -46,6 +48,11 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var ivCheckLight: ImageView
     private lateinit var ivCheckSystem: ImageView
 
+    // Views - Section: Ukuran Keyboard
+    private lateinit var rowKeyboardScale: View
+    private lateinit var tvKeyboardScaleSummary: TextView
+    private lateinit var btnQuickResetScale: Button
+
     // Views - Section 2: Scanner
     private lateinit var switchScannerSound: SwitchCompat
     private lateinit var switchScannerVibrate: SwitchCompat
@@ -71,6 +78,7 @@ class SettingsActivity : AppCompatActivity() {
         initViews()
         setupNavigation()
         setupThemeSection()
+        setupKeyboardScaleSection()
         setupScannerSection()
         setupInfoSection()
     }
@@ -106,6 +114,10 @@ class SettingsActivity : AppCompatActivity() {
         ivCheckDark = findViewById(R.id.ivCheckDark)
         ivCheckLight = findViewById(R.id.ivCheckLight)
         ivCheckSystem = findViewById(R.id.ivCheckSystem)
+
+        rowKeyboardScale = findViewById(R.id.rowKeyboardScale)
+        tvKeyboardScaleSummary = findViewById(R.id.tvKeyboardScaleSummary)
+        btnQuickResetScale = findViewById(R.id.btnQuickResetScale)
 
         switchScannerSound = findViewById(R.id.switchScannerSound)
         switchScannerVibrate = findViewById(R.id.switchScannerVibrate)
@@ -176,6 +188,108 @@ class SettingsActivity : AppCompatActivity() {
         ivCheckDark.visibility = if (isDark) View.VISIBLE else View.GONE
         ivCheckLight.visibility = if (isLight) View.VISIBLE else View.GONE
         ivCheckSystem.visibility = if (isSystem) View.VISIBLE else View.GONE
+    }
+
+    private fun setupKeyboardScaleSection() {
+        updateKeyboardScaleSummary()
+
+        rowKeyboardScale.setOnClickListener {
+            showKeyboardScaleDialog()
+        }
+
+        btnQuickResetScale.setOnClickListener {
+            resetKeyboardScaleWithFeedback()
+        }
+    }
+
+    private fun updateKeyboardScaleSummary() {
+        val scale = preferences.keyboardScalePercent
+        val label = when {
+            scale < 90 -> "Sangat Pendek"
+            scale < 98 -> "Pendek"
+            scale in 98..102 -> "Standar (Default)"
+            scale in 103..115 -> "Tinggi"
+            else -> "Ekstra Tinggi"
+        }
+        tvKeyboardScaleSummary.text = "$scale% ($label)"
+        btnQuickResetScale.visibility = if (scale == KeyboardPreferences.DEFAULT_KEYBOARD_SCALE) View.GONE else View.VISIBLE
+    }
+
+    private fun resetKeyboardScaleWithFeedback() {
+        preferences.resetKeyboardScale()
+        updateKeyboardScaleSummary()
+        Toast.makeText(this, "Ukuran keyboard dikembalikan ke Standar (100%)", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showKeyboardScaleDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_keyboard_size, null)
+        val tvScalePercent = dialogView.findViewById<TextView>(R.id.tvDialogScalePercent)
+        val tvScaleLabel = dialogView.findViewById<TextView>(R.id.tvDialogScaleLabel)
+        val sbScale = dialogView.findViewById<SeekBar>(R.id.sbKeyboardScale)
+        val btnShort = dialogView.findViewById<Button>(R.id.btnPresetShort)
+        val btnNormal = dialogView.findViewById<Button>(R.id.btnPresetNormal)
+        val btnTall = dialogView.findViewById<Button>(R.id.btnPresetTall)
+        val btnReset = dialogView.findViewById<Button>(R.id.btnResetScale)
+
+        val initialScale = preferences.keyboardScalePercent
+        var currentScale = initialScale
+
+        fun updateDialogDisplay(scale: Int) {
+            currentScale = scale
+            tvScalePercent.text = "$scale%"
+            tvScaleLabel.text = when {
+                scale < 90 -> "Sangat Pendek"
+                scale < 98 -> "Pendek"
+                scale in 98..102 -> "Ukuran Standar (Default)"
+                scale in 103..115 -> "Tinggi"
+                else -> "Ekstra Tinggi"
+            }
+        }
+
+        // SeekBar max is 50, range 80 to 130
+        sbScale.progress = (initialScale - 80).coerceIn(0, 50)
+        updateDialogDisplay(initialScale)
+
+        sbScale.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val scale = progress + 80
+                updateDialogDisplay(scale)
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        // Quick Presets
+        btnShort.setOnClickListener {
+            sbScale.progress = 85 - 80
+        }
+        btnNormal.setOnClickListener {
+            sbScale.progress = 100 - 80
+        }
+        btnTall.setOnClickListener {
+            sbScale.progress = 115 - 80
+        }
+
+        // Reset Button inside Dialog
+        btnReset.setOnClickListener {
+            sbScale.progress = 100 - 80
+            Toast.makeText(this, "Di-reset ke 100%", Toast.LENGTH_SHORT).show()
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("Tinggi & Ukuran Keyboard")
+            .setView(dialogView)
+            .setPositiveButton("Terapkan") { _, _ ->
+                val chosen = sbScale.progress + 80
+                preferences.setKeyboardScalePercent(chosen)
+                updateKeyboardScaleSummary()
+                Toast.makeText(this, "Ukuran keyboard diatur ke $chosen%", Toast.LENGTH_SHORT).show()
+            }
+            .setNeutralButton("Reset ke 100%") { _, _ ->
+                resetKeyboardScaleWithFeedback()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
     }
 
     private fun setupScannerSection() {

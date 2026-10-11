@@ -140,6 +140,7 @@ class KeyboardView(
         setupToolbar()
         setupClipboard()
         setupWindowInsets()
+        applyKeyboardScale()
         scannerOverlayView.onViewfinderTapped = {
             onViewfinderTapped?.invoke()
         }
@@ -276,6 +277,54 @@ class KeyboardView(
         }
 
         return 0
+    }
+
+    /**
+     * Applies custom keyboard height/scale (80% to 130%).
+     * Dynamically adjusts each keyboard row's height and re-renders keys.
+     */
+    fun applyKeyboardScale() {
+        val prefs = KeyboardPreferences(context)
+        val scale = prefs.keyboardScalePercent / 100f
+        val density = context.resources.displayMetrics.density
+
+        val baseNumberHeightDp = 44f
+        val baseRowHeightDp = 46f
+
+        val numberHeightPx = (baseNumberHeightDp * scale * density).toInt()
+        val rowHeightPx = (baseRowHeightDp * scale * density).toInt()
+
+        rowNumber.layoutParams = (rowNumber.layoutParams ?: LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, numberHeightPx
+        )).apply {
+            height = numberHeightPx
+        }
+
+        row1.layoutParams = (row1.layoutParams ?: LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, rowHeightPx
+        )).apply {
+            height = rowHeightPx
+        }
+
+        row2.layoutParams = (row2.layoutParams ?: LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, rowHeightPx
+        )).apply {
+            height = rowHeightPx
+        }
+
+        row3.layoutParams = (row3.layoutParams ?: LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, rowHeightPx
+        )).apply {
+            height = rowHeightPx
+        }
+
+        row4.layoutParams = (row4.layoutParams ?: LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, rowHeightPx
+        )).apply {
+            height = rowHeightPx
+        }
+
+        renderKeyboard()
     }
 
     /**
@@ -821,10 +870,13 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_text_light)
         }
 
+        val scale = KeyboardPreferences(context).keyboardScalePercent / 100f
+        val fontScale = scale.coerceIn(0.85f, 1.25f)
+
         val btn = Button(context).apply {
             this.text = text
             isAllCaps = false
-            textSize = 17f
+            textSize = 17f * fontScale
             setTextColor(textColor)
             background = createKeyDrawable(normalColor, pressedColor, 6f)
             setPadding(0, 0, 0, 0)
@@ -898,10 +950,13 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_text_sub_light)
         }
 
+        val scale = KeyboardPreferences(context).keyboardScalePercent / 100f
+        val fontScale = scale.coerceIn(0.85f, 1.25f)
+
         val btn = Button(context).apply {
             this.text = text
             isAllCaps = false
-            textSize = 13f
+            textSize = 13f * fontScale
             setTextColor(textColor)
             background = createKeyDrawable(normalColor, pressedColor, 6f)
             setPadding(0, 0, 0, 0)

@@ -30,6 +30,9 @@ class KeyboardPreferences(context: Context) {
         const val BOTTOM_PADDING_LOW = "low"
         const val BOTTOM_PADDING_MEDIUM = "medium"
         const val BOTTOM_PADDING_HIGH = "high"
+
+        const val KEY_KEYBOARD_SCALE = "pref_keyboard_scale"
+        const val DEFAULT_KEYBOARD_SCALE = 100
     }
 
     val themeMode: String
@@ -79,6 +82,17 @@ class KeyboardPreferences(context: Context) {
 
     fun setBottomPaddingSetting(value: String) {
         prefs.edit().putString(KEY_BOTTOM_PADDING, value).apply()
+    }
+
+    val keyboardScalePercent: Int
+        get() = prefs.getInt(KEY_KEYBOARD_SCALE, DEFAULT_KEYBOARD_SCALE)
+
+    fun setKeyboardScalePercent(scale: Int) {
+        prefs.edit().putInt(KEY_KEYBOARD_SCALE, scale.coerceIn(80, 130)).apply()
+    }
+
+    fun resetKeyboardScale() {
+        prefs.edit().putInt(KEY_KEYBOARD_SCALE, DEFAULT_KEYBOARD_SCALE).apply()
     }
 
     fun registerListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {

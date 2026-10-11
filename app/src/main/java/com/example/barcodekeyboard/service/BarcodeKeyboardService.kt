@@ -57,6 +57,9 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         } else if (key == KeyboardPreferences.KEY_BOTTOM_PADDING) {
             keyboardView?.applyBottomInsets()
             Log.d(TAG, "Bottom padding changed via settings")
+        } else if (key == KeyboardPreferences.KEY_KEYBOARD_SCALE) {
+            keyboardView?.applyKeyboardScale()
+            Log.d(TAG, "Keyboard scale changed via settings")
         }
     }
 
@@ -244,6 +247,7 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         }
         updateWindowNavigationBar(isDark)
         keyboardView?.applyBottomInsets()
+        keyboardView?.applyKeyboardScale()
         keyboardView?.rootView?.requestApplyInsets()
 
         // Capture current clipboard content and update history
