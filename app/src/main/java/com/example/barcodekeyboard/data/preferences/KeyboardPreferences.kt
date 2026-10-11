@@ -23,6 +23,13 @@ class KeyboardPreferences(context: Context) {
         const val KEY_SOUND = "pref_sound"
         const val KEY_PREFIX = "pref_prefix"
         const val KEY_SUFFIX = "pref_suffix"
+
+        const val KEY_BOTTOM_PADDING = "pref_bottom_padding"
+        const val BOTTOM_PADDING_AUTO = "auto"
+        const val BOTTOM_PADDING_NONE = "none"
+        const val BOTTOM_PADDING_LOW = "low"
+        const val BOTTOM_PADDING_MEDIUM = "medium"
+        const val BOTTOM_PADDING_HIGH = "high"
     }
 
     val themeMode: String
@@ -66,6 +73,13 @@ class KeyboardPreferences(context: Context) {
 
     val suffix: String
         get() = suffixText
+
+    val bottomPaddingSetting: String
+        get() = prefs.getString(KEY_BOTTOM_PADDING, BOTTOM_PADDING_AUTO) ?: BOTTOM_PADDING_AUTO
+
+    fun setBottomPaddingSetting(value: String) {
+        prefs.edit().putString(KEY_BOTTOM_PADDING, value).apply()
+    }
 
     fun registerListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
         prefs.registerOnSharedPreferenceChangeListener(listener)

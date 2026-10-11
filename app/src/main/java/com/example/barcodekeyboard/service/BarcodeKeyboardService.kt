@@ -52,7 +52,11 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         if (key == KeyboardPreferences.KEY_THEME) {
             val isDark = preferences.isDarkTheme(this)
             keyboardView?.applyTheme(isDark)
+            updateWindowNavigationBar(isDark)
             Log.d(TAG, "Theme changed via settings, isDark: $isDark")
+        } else if (key == KeyboardPreferences.KEY_BOTTOM_PADDING) {
+            keyboardView?.applyBottomInsets()
+            Log.d(TAG, "Bottom padding changed via settings")
         }
     }
 
@@ -79,6 +83,8 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         // Apply theme immediately
         val isDark = preferences.isDarkTheme(this)
         view.applyTheme(isDark)
+        updateWindowNavigationBar(isDark)
+        view.applyBottomInsets()
 
         cameraManager = CameraManager(
             context = this,
@@ -236,6 +242,9 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         if (keyboardView?.isDarkMode != isDark) {
             keyboardView?.applyTheme(isDark)
         }
+        updateWindowNavigationBar(isDark)
+        keyboardView?.applyBottomInsets()
+        keyboardView?.rootView?.requestApplyInsets()
 
         // Capture current clipboard content and update history
         clipboardHistoryManager.captureCurrentClipboard(this)
@@ -244,6 +253,27 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         // If scanner was previously toggled open by user, restart camera
         if (keyboardView?.isScannerOpen == true) {
             checkPermissionAndStartCamera()
+        }
+    }
+
+    private fun updateWindowNavigationBar(isDark: Boolean) {
+        val win = window?.window ?: return
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val navColor = ContextCompat.getColor(
+                this,
+                if (isDark) com.example.barcodekeyboard.R.color.heliboard_surface else com.example.barcodekeyboard.R.color.heliboard_surface_light
+            )
+            win.navigationBarColor = navColor
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                win.isNavigationBarContrastEnforced = false
+            }
+            var flags = win.decorView.systemUiVisibility
+            if (!isDark && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O_MR1) {
+                flags = flags or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            } else {
+                flags = flags and View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR.inv()
+            }
+            win.decorView.systemUiVisibility = flags
         }
     }
 

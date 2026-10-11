@@ -52,6 +52,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var switchScannerAutoEnter: SwitchCompat
     private lateinit var rowPrefixSuffix: View
     private lateinit var tvPrefixSuffixSummary: TextView
+    private lateinit var rowBottomPadding: View
+    private lateinit var tvBottomPaddingSummary: TextView
 
     // Views - Section 3: Info
     private lateinit var btnCheckCameraPermission: TextView
@@ -110,6 +112,8 @@ class SettingsActivity : AppCompatActivity() {
         switchScannerAutoEnter = findViewById(R.id.switchScannerAutoEnter)
         rowPrefixSuffix = findViewById(R.id.rowPrefixSuffix)
         tvPrefixSuffixSummary = findViewById(R.id.tvPrefixSuffixSummary)
+        rowBottomPadding = findViewById(R.id.rowBottomPadding)
+        tvBottomPaddingSummary = findViewById(R.id.tvBottomPaddingSummary)
 
         btnCheckCameraPermission = findViewById(R.id.btnCheckCameraPermission)
         btnOpenSetupGuide = findViewById(R.id.btnOpenSetupGuide)
@@ -201,6 +205,55 @@ class SettingsActivity : AppCompatActivity() {
         rowPrefixSuffix.setOnClickListener {
             showPrefixSuffixDialog()
         }
+
+        updateBottomPaddingSummary()
+
+        rowBottomPadding.setOnClickListener {
+            showBottomPaddingDialog()
+        }
+    }
+
+    private fun updateBottomPaddingSummary() {
+        val summary = when (preferences.bottomPaddingSetting) {
+            KeyboardPreferences.BOTTOM_PADDING_HIGH -> "Tinggi (+48dp - Paling Aman untuk 3 Tombol)"
+            KeyboardPreferences.BOTTOM_PADDING_MEDIUM -> "Sedang (+28dp)"
+            KeyboardPreferences.BOTTOM_PADDING_LOW -> "Rendah (+16dp)"
+            KeyboardPreferences.BOTTOM_PADDING_NONE -> "Tanpa Jarak (0dp - Khusus Gestur Penuh)"
+            else -> "Otomatis (Sesuai Navigasi Sistem)"
+        }
+        tvBottomPaddingSummary.text = summary
+    }
+
+    private fun showBottomPaddingDialog() {
+        val options = arrayOf(
+            "Otomatis (Rekomendasi - Deteksi Navigasi Sistem)",
+            "Tinggi (+48dp - Paling Pas untuk Navigasi 3 Tombol)",
+            "Sedang (+28dp)",
+            "Rendah (+16dp)",
+            "Tanpa Jarak (0dp - Khusus Navigasi Gestur)"
+        )
+        val values = arrayOf(
+            KeyboardPreferences.BOTTOM_PADDING_AUTO,
+            KeyboardPreferences.BOTTOM_PADDING_HIGH,
+            KeyboardPreferences.BOTTOM_PADDING_MEDIUM,
+            KeyboardPreferences.BOTTOM_PADDING_LOW,
+            KeyboardPreferences.BOTTOM_PADDING_NONE
+        )
+
+        val currentVal = preferences.bottomPaddingSetting
+        val selectedIndex = values.indexOf(currentVal).let { if (it >= 0) it else 0 }
+
+        AlertDialog.Builder(this)
+            .setTitle("Jarak Bawah Keyboard")
+            .setSingleChoiceItems(options, selectedIndex) { dialog, which ->
+                val chosen = values[which]
+                preferences.setBottomPaddingSetting(chosen)
+                updateBottomPaddingSummary()
+                Toast.makeText(this, "Jarak bawah keyboard diperbarui", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
     }
 
     private fun updatePrefixSuffixSummary() {

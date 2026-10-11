@@ -6,13 +6,16 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsets
 import android.view.animation.OvershootInterpolator
 import android.widget.Button
 import android.widget.FrameLayout
@@ -27,6 +30,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.barcodekeyboard.R
 import com.example.barcodekeyboard.core.clipboard.ClipboardHistoryManager
 import com.example.barcodekeyboard.data.model.ClipboardItem
+import com.example.barcodekeyboard.data.preferences.KeyboardPreferences
 import com.example.barcodekeyboard.ui.keyboard.clipboard.ClipboardAdapter
 
 /**
@@ -135,6 +139,7 @@ class KeyboardView(
     init {
         setupToolbar()
         setupClipboard()
+        setupWindowInsets()
         scannerOverlayView.onViewfinderTapped = {
             onViewfinderTapped?.invoke()
         }
@@ -188,6 +193,89 @@ class KeyboardView(
         btnGrantPermission.setOnClickListener {
             onGrantPermissionClicked?.invoke()
         }
+    }
+
+    /**
+     * Initializes window insets listener and fallback for 3-button navigation.
+     */
+    private fun setupWindowInsets() {
+        applyBottomInsets(null)
+
+        rootView.setOnApplyWindowInsetsListener { _, insets ->
+            applyBottomInsets(insets)
+            insets
+        }
+    }
+
+    /**
+     * Dynamically calculates and applies bottom padding to keyboardRoot
+     * to prevent the Android 3-button navigation bar (Back, Home, Recents)
+     * from overlapping the bottom keyboard buttons (Scan, Space, Enter).
+     */
+    fun applyBottomInsets(insets: WindowInsets? = null) {
+        val bottomPadding = calculateBottomInsets(insets)
+        if (keyboardRoot.paddingBottom != bottomPadding) {
+            keyboardRoot.setPadding(
+                keyboardRoot.paddingLeft,
+                keyboardRoot.paddingTop,
+                keyboardRoot.paddingRight,
+                bottomPadding
+            )
+        }
+    }
+
+    private fun calculateBottomInsets(insets: WindowInsets?): Int {
+        val prefs = KeyboardPreferences(context)
+        val density = context.resources.displayMetrics.density
+
+        // 1. User manual override from Settings
+        when (prefs.bottomPaddingSetting) {
+            KeyboardPreferences.BOTTOM_PADDING_NONE -> return 0
+            KeyboardPreferences.BOTTOM_PADDING_LOW -> return (16 * density).toInt()
+            KeyboardPreferences.BOTTOM_PADDING_MEDIUM -> return (28 * density).toInt()
+            KeyboardPreferences.BOTTOM_PADDING_HIGH -> return (48 * density).toInt()
+        }
+
+        // 2. Auto mode:
+        // A. Check passed WindowInsets from OS
+        if (insets != null) {
+            val navBottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                insets.getInsets(WindowInsets.Type.navigationBars()).bottom
+            } else {
+                insets.systemWindowInsetBottom
+            }
+            if (navBottom > 0) return navBottom
+        }
+
+        // B. Check rootWindowInsets if available
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val rInsets = rootView.rootWindowInsets
+            if (rInsets != null) {
+                val navBottom = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    rInsets.getInsets(WindowInsets.Type.navigationBars()).bottom
+                } else {
+                    rInsets.systemWindowInsetBottom
+                }
+                if (navBottom > 0) return navBottom
+            }
+        }
+
+        // C. Fallback: Detect if 3-button navigation mode is active
+        // Settings.Secure navigation_mode: 0 = 3-button, 1 = 2-button, 2 = gestures
+        val navMode = try {
+            Settings.Secure.getInt(context.contentResolver, "navigation_mode", 0)
+        } catch (e: Exception) {
+            0
+        }
+
+        if (navMode != 2) {
+            val resId = context.resources.getIdentifier("navigation_bar_height", "dimen", "android")
+            val navDimen = if (resId > 0) context.resources.getDimensionPixelSize(resId) else 0
+            if (navDimen > 0) return navDimen
+            return (48 * density).toInt()
+        }
+
+        return 0
     }
 
     /**
