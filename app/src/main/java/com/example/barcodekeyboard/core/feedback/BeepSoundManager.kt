@@ -17,12 +17,26 @@ class BeepSoundManager(private val context: Context) {
     }
 
     private var toneGenerator: ToneGenerator? = null
+    private val audioManager: AudioManager? = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
 
     init {
         try {
             toneGenerator = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 85)
         } catch (e: Exception) {
             Log.w(TAG, "ToneGenerator initialization failed, will use MediaPlayer fallback", e)
+        }
+    }
+
+    /**
+     * Plays zero-latency native Android key click sound effect.
+     * Uses OS hardware audio server (AudioFlinger), respecting user volume
+     * and silent mode without CPU or memory overhead.
+     */
+    fun playKeyClick(effectType: Int = AudioManager.FX_KEYPRESS_STANDARD) {
+        try {
+            audioManager?.playSoundEffect(effectType)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to play key click sound effect", e)
         }
     }
 

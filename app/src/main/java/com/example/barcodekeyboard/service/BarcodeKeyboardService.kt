@@ -95,25 +95,43 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
             previewView = view.previewView
         )
 
-        // 1. Essential Keyboard Typing Callbacks
+        // 1. Instantaneous Key Touch Feedback (Haptic + Native Audio Click on ACTION_DOWN)
+        view.onKeyFeedback = { type, targetView ->
+            if (preferences.isVibrationEnabled) {
+                when (type) {
+                    KeyboardView.KeyFeedbackType.STANDARD -> vibrationHelper.vibrateKeyTap(targetView)
+                    KeyboardView.KeyFeedbackType.ACTION,
+                    KeyboardView.KeyFeedbackType.SPACE,
+                    KeyboardView.KeyFeedbackType.RETURN -> vibrationHelper.vibrateKeyAction(targetView)
+                    KeyboardView.KeyFeedbackType.DELETE -> vibrationHelper.vibrateKeyTap(targetView)
+                }
+            }
+            if (preferences.isSoundEnabled) {
+                when (type) {
+                    KeyboardView.KeyFeedbackType.STANDARD -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_STANDARD)
+                    KeyboardView.KeyFeedbackType.SPACE -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_SPACEBAR)
+                    KeyboardView.KeyFeedbackType.DELETE -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_DELETE)
+                    KeyboardView.KeyFeedbackType.RETURN -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_RETURN)
+                    KeyboardView.KeyFeedbackType.ACTION -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_STANDARD)
+                }
+            }
+        }
+
+        // 2. Essential Keyboard Typing Callbacks (Committed on ACTION_UP)
         view.onKeyTyped = { char ->
             inputTextHandler.commitChar(currentInputConnection, char)
-            triggerKeyHaptic()
         }
 
         view.onSpaceClicked = {
             inputTextHandler.sendSpace(currentInputConnection)
-            triggerKeyHaptic()
         }
 
         view.onBackspaceClicked = {
             inputTextHandler.sendBackspace(currentInputConnection)
-            triggerKeyHaptic()
         }
 
         view.onEnterClicked = {
             inputTextHandler.sendEnter(currentInputConnection)
-            triggerKeyHaptic()
         }
 
         view.onCursorLeftClicked = {
@@ -222,7 +240,7 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
 
     private fun triggerKeyHaptic() {
         if (preferences.isVibrationEnabled) {
-            vibrationHelper.vibrate(20)
+            vibrationHelper.vibrateKeyAction()
         }
     }
 

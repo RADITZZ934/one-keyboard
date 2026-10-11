@@ -5,9 +5,12 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
+import android.view.HapticFeedbackConstants
+import android.view.View
 
 /**
- * Handles haptic vibration feedback when a barcode is scanned.
+ * Handles fine-tuned haptic vibration feedback for both keyboard typing
+ * and barcode scanning using modern Android haptic APIs.
  */
 class VibrationHelper(context: Context) {
 
@@ -17,6 +20,78 @@ class VibrationHelper(context: Context) {
     }
 
     private val vibrator: Vibrator? = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+
+    /**
+     * Ultra-crisp transient tap for normal keyboard typing (letters/numbers).
+     * First attempts view-level KEYBOARD_TAP (manufacturer calibrated),
+     * then falls back to VibrationEffect.EFFECT_CLICK or an 8ms micro-pulse.
+     */
+    fun vibrateKeyTap(view: View? = null) {
+        if (view != null) {
+            val performed = try {
+                view.performHapticFeedback(
+                    HapticFeedbackConstants.KEYBOARD_TAP,
+                    HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+                )
+            } catch (e: Exception) {
+                false
+            }
+            if (performed) return
+        }
+
+        if (vibrator == null || !vibrator.hasVibrator()) return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                vibrator.vibrate(
+                    VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
+                )
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(8L, 85)
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(8L)
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to perform key tap vibration", e)
+        }
+    }
+
+    /**
+     * Slightly firmer tactile click for special functional keys (Backspace, Enter, Space).
+     */
+    fun vibrateKeyAction(view: View? = null) {
+        if (view != null) {
+            val performed = try {
+                view.performHapticFeedback(
+                    HapticFeedbackConstants.VIRTUAL_KEY,
+                    HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+                )
+            } catch (e: Exception) {
+                false
+            }
+            if (performed) return
+        }
+
+        if (vibrator == null || !vibrator.hasVibrator()) return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                vibrator.vibrate(
+                    VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+                )
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(12L, 110)
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(12L)
+            }
+        } catch (e: Exception) {
+            vibrateKeyTap(view)
+        }
+    }
 
     fun vibrate(durationMs: Long = DEFAULT_DURATION_MS) {
         if (vibrator == null || !vibrator.hasVibrator()) return

@@ -33,9 +33,9 @@
     <string name="pref_auto_enter_title">Kirim Otomatis (Auto-Enter)</string>
     <string name="pref_auto_enter_summary">Otomatis menekan Enter setelah barcode berhasil dipindai</string>
     <string name="pref_vibrate_title">Getar (Haptic Feedback)</string>
-    <string name="pref_vibrate_summary">Getar singkat saat barcode terdeteksi</string>
-    <string name="pref_sound_title">Suara Bip (Beep)</string>
-    <string name="pref_sound_summary">Bunyikan nada bip saat barcode terdeteksi</string>
+    <string name="pref_vibrate_summary">Umpan balik getar taktil saat mengetik tombol dan memindai barcode</string>
+    <string name="pref_sound_title">Suara (Audio Click &amp; Beep)</string>
+    <string name="pref_sound_summary">Suara klik saat mengetik tombol dan nada bip saat memindai</string>
     <string name="pref_prefix_title">Awalan (Prefix)</string>
     <string name="pref_prefix_summary">Teks yang ditambahkan sebelum hasil scan</string>
     <string name="pref_suffix_title">Akhiran (Suffix)</string>

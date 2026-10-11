@@ -54,6 +54,14 @@ class KeyboardView(
         CAPS_LOCK
     }
 
+    enum class KeyFeedbackType {
+        STANDARD,
+        ACTION,
+        SPACE,
+        DELETE,
+        RETURN
+    }
+
     val rootView: View = layoutInflater.inflate(R.layout.view_barcode_keyboard, null)
 
     // Views
@@ -126,6 +134,9 @@ class KeyboardView(
     var onQuickZoomClicked: (() -> Unit)? = null
     var onDoubleTapZoom: (() -> Unit)? = null
     var onPinchZoom: ((Float) -> Unit)? = null
+    var onKeyFeedback: ((KeyFeedbackType, View?) -> Unit)? = null
+
+    private var shiftButton: ImageButton? = null
 
     // Backspace auto-repeat handler
     private val repeatHandler = Handler(Looper.getMainLooper())
@@ -576,8 +587,8 @@ class KeyboardView(
     private fun renderNumberRow() {
         val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
         for (num in numbers) {
-            rowNumber.addView(createKeyButton(num, 1f) {
-                handleCharInput(num)
+            rowNumber.addView(createKeyButton(num, 1f) { char ->
+                handleCharInput(char)
             })
         }
     }
@@ -588,9 +599,9 @@ class KeyboardView(
         // Row 1: q w e r t y u i o p
         val r1Keys = listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p")
         for (k in r1Keys) {
-            val label = if (isUpper) k.toUpperCase() else k
-            row1.addView(createKeyButton(label, 1f) {
-                handleCharInput(label)
+            val label = if (isUpper) k.toUpperCase(java.util.Locale.ROOT) else k
+            row1.addView(createKeyButton(label, 1f) { char ->
+                handleCharInput(char)
             })
         }
 
@@ -598,65 +609,68 @@ class KeyboardView(
         val r2Keys = listOf("a", "s", "d", "f", "g", "h", "j", "k", "l")
         row2.addView(createSpacer(0.5f))
         for (k in r2Keys) {
-            val label = if (isUpper) k.toUpperCase() else k
-            row2.addView(createKeyButton(label, 1f) {
-                handleCharInput(label)
+            val label = if (isUpper) k.toUpperCase(java.util.Locale.ROOT) else k
+            row2.addView(createKeyButton(label, 1f) { char ->
+                handleCharInput(char)
             })
         }
         row2.addView(createSpacer(0.5f))
 
         // Row 3: [Shift] z x c v b n m [Backspace]
         val shiftBtn = createShiftButton(1.5f)
+        shiftButton = shiftBtn as? ImageButton
         row3.addView(shiftBtn)
 
         val r3Keys = listOf("z", "x", "c", "v", "b", "n", "m")
         for (k in r3Keys) {
-            val label = if (isUpper) k.toUpperCase() else k
-            row3.addView(createKeyButton(label, 1f) {
-                handleCharInput(label)
+            val label = if (isUpper) k.toUpperCase(java.util.Locale.ROOT) else k
+            row3.addView(createKeyButton(label, 1f) { char ->
+                handleCharInput(char)
             })
         }
 
         row3.addView(createBackspaceButton(1.5f))
 
         // Row 4: [?123] [,] [📷 Scan (Biru)] [   Spasi   ] [.] [Enter]
-        val modeBtn = createFunctionButton("?123", 1.4f) {
+        val modeBtn = createFunctionButton("?123", 1.4f, KeyFeedbackType.ACTION) {
             currentMode = KeyboardMode.SYMBOLS
             renderKeyboard()
         }
         row4.addView(modeBtn)
 
-        row4.addView(createKeyButton(",", 0.9f) {
-            handleCharInput(",")
+        row4.addView(createKeyButton(",", 0.9f) { char ->
+            handleCharInput(char)
         })
 
         // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
         row4.addView(createScanButton(1.3f))
 
-        val spaceBtn = createFunctionButton("Spasi", 3.8f) {
+        val spaceBtn = createFunctionButton("Spasi", 3.8f, KeyFeedbackType.SPACE) {
             onSpaceClicked?.invoke()
         }
         row4.addView(spaceBtn)
 
-        row4.addView(createKeyButton(".", 0.9f) {
-            handleCharInput(".")
+        row4.addView(createKeyButton(".", 0.9f) { char ->
+            handleCharInput(char)
         })
 
         row4.addView(createEnterButton(1.7f))
     }
 
     private fun renderSymbolsLayout() {
+        shiftButton = null
+
         val r1 = listOf("@", "#", "$", "%", "&", "-", "+", "(", ")", "/")
         for (k in r1) {
-            row1.addView(createKeyButton(k, 1f) { handleCharInput(k) })
+            row1.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
         }
 
         val r2 = listOf("*", "\"", "'", ":", ";", "!", "?", "/", "\\", "_")
         for (k in r2) {
-            row2.addView(createKeyButton(k, 1f) { handleCharInput(k) })
+            row2.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
         }
 
-        val moreSymBtn = createFunctionButton("=\\<", 1.4f) {
+        val moreSymBtn = createFunctionButton("=\\<", 1.4f, KeyFeedbackType.ACTION) {
             currentMode = KeyboardMode.MORE_SYMBOLS
             renderKeyboard()
         }
@@ -664,44 +678,46 @@ class KeyboardView(
 
         val r3 = listOf("~", "`", "|", "^", "=", "{", "}")
         for (k in r3) {
-            row3.addView(createKeyButton(k, 1f) { handleCharInput(k) })
+            row3.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
         }
 
         row3.addView(createBackspaceButton(1.5f))
 
-        val abcBtn = createFunctionButton("ABC", 1.4f) {
+        val abcBtn = createFunctionButton("ABC", 1.4f, KeyFeedbackType.ACTION) {
             currentMode = KeyboardMode.ALPHABET
             renderKeyboard()
         }
         row4.addView(abcBtn)
 
-        row4.addView(createKeyButton(",", 0.9f) { handleCharInput(",") })
+        row4.addView(createKeyButton(",", 0.9f) { char -> handleCharInput(char) })
 
         // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
         row4.addView(createScanButton(1.3f))
 
-        val spaceBtn = createFunctionButton("Spasi", 3.8f) {
+        val spaceBtn = createFunctionButton("Spasi", 3.8f, KeyFeedbackType.SPACE) {
             onSpaceClicked?.invoke()
         }
         row4.addView(spaceBtn)
 
-        row4.addView(createKeyButton(".", 0.9f) { handleCharInput(".") })
+        row4.addView(createKeyButton(".", 0.9f) { char -> handleCharInput(char) })
 
         row4.addView(createEnterButton(1.7f))
     }
 
     private fun renderMoreSymbolsLayout() {
+        shiftButton = null
+
         val r1 = listOf("~", "`", "|", "^", "_", "=", "{", "}", "[", "]")
         for (k in r1) {
-            row1.addView(createKeyButton(k, 1f) { handleCharInput(k) })
+            row1.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
         }
 
         val r2 = listOf("<", ">", "€", "£", "¥", "¢", "\\", "§", "°", "¿")
         for (k in r2) {
-            row2.addView(createKeyButton(k, 1f) { handleCharInput(k) })
+            row2.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
         }
 
-        val symBtn = createFunctionButton("?123", 1.4f) {
+        val symBtn = createFunctionButton("?123", 1.4f, KeyFeedbackType.ACTION) {
             currentMode = KeyboardMode.SYMBOLS
             renderKeyboard()
         }
@@ -709,28 +725,28 @@ class KeyboardView(
 
         val r3 = listOf("«", "»", "¡", "©", "®", "™", "±")
         for (k in r3) {
-            row3.addView(createKeyButton(k, 1f) { handleCharInput(k) })
+            row3.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
         }
 
         row3.addView(createBackspaceButton(1.5f))
 
-        val abcBtn = createFunctionButton("ABC", 1.4f) {
+        val abcBtn = createFunctionButton("ABC", 1.4f, KeyFeedbackType.ACTION) {
             currentMode = KeyboardMode.ALPHABET
             renderKeyboard()
         }
         row4.addView(abcBtn)
 
-        row4.addView(createKeyButton(",", 0.9f) { handleCharInput(",") })
+        row4.addView(createKeyButton(",", 0.9f) { char -> handleCharInput(char) })
 
         // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
         row4.addView(createScanButton(1.3f))
 
-        val spaceBtn = createFunctionButton("Spasi", 3.8f) {
+        val spaceBtn = createFunctionButton("Spasi", 3.8f, KeyFeedbackType.SPACE) {
             onSpaceClicked?.invoke()
         }
         row4.addView(spaceBtn)
 
-        row4.addView(createKeyButton(".", 0.9f) { handleCharInput(".") })
+        row4.addView(createKeyButton(".", 0.9f) { char -> handleCharInput(char) })
 
         row4.addView(createEnterButton(1.7f))
     }
@@ -739,7 +755,65 @@ class KeyboardView(
         onKeyTyped?.invoke(char)
         if (shiftState == ShiftState.ONCE) {
             shiftState = ShiftState.OFF
+            updateAlphabetShiftState()
+        }
+    }
+
+    /**
+     * Updates Alphabet letter keycaps in-place without rebuilding the View hierarchy.
+     * Eliminates GC churn and frame drops on capitalized typing.
+     */
+    private fun updateAlphabetShiftState() {
+        if (currentMode != KeyboardMode.ALPHABET) {
             renderKeyboard()
+            return
+        }
+
+        shiftButton?.let { updateShiftIcon(it) }
+
+        val isUpper = (shiftState != ShiftState.OFF)
+
+        fun updateRowButtons(row: LinearLayout) {
+            for (i in 0 until row.childCount) {
+                val v = row.getChildAt(i)
+                if (v is Button) {
+                    val current = v.text.toString()
+                    v.text = if (isUpper) current.toUpperCase(java.util.Locale.ROOT) else current.toLowerCase(java.util.Locale.ROOT)
+                }
+            }
+        }
+
+        updateRowButtons(row1)
+        updateRowButtons(row2)
+        updateRowButtons(row3)
+    }
+
+    private fun updateShiftIcon(btn: ImageButton) {
+        val accentColor = if (isDarkMode) {
+            ContextCompat.getColor(context, R.color.heliboard_accent)
+        } else {
+            ContextCompat.getColor(context, R.color.heliboard_accent_light)
+        }
+
+        val subTextColor = if (isDarkMode) {
+            ContextCompat.getColor(context, R.color.heliboard_text_sub)
+        } else {
+            ContextCompat.getColor(context, R.color.heliboard_text_sub_light)
+        }
+
+        when (shiftState) {
+            ShiftState.OFF -> {
+                btn.setImageResource(R.drawable.ic_shift)
+                btn.setColorFilter(subTextColor)
+            }
+            ShiftState.ONCE -> {
+                btn.setImageResource(R.drawable.ic_shift)
+                btn.setColorFilter(accentColor)
+            }
+            ShiftState.CAPS_LOCK -> {
+                btn.setImageResource(R.drawable.ic_shift_caps)
+                btn.setColorFilter(accentColor)
+            }
         }
     }
 
@@ -850,7 +924,7 @@ class KeyboardView(
     private fun createKeyButton(
         text: String,
         weight: Float,
-        onClick: () -> Unit
+        onClick: (String) -> Unit
     ): View {
         val normalColor = if (isDarkMode) {
             ContextCompat.getColor(context, R.color.heliboard_key_bg)
@@ -886,7 +960,9 @@ class KeyboardView(
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         v.isPressed = true
-                        showCircleHighlight(v, text)
+                        val currentChar = this.text.toString()
+                        showCircleHighlight(v, currentChar)
+                        onKeyFeedback?.invoke(KeyFeedbackType.STANDARD, v)
                         true
                     }
                     MotionEvent.ACTION_MOVE -> {
@@ -906,7 +982,7 @@ class KeyboardView(
                         hideCircleHighlight(delayMs = 75)
                         if (wasPressed) {
                             v.performClick()
-                            onClick()
+                            onClick(this.text.toString())
                         }
                         true
                     }
@@ -930,6 +1006,7 @@ class KeyboardView(
     private fun createFunctionButton(
         text: String,
         weight: Float,
+        feedbackType: KeyFeedbackType = KeyFeedbackType.ACTION,
         onClick: () -> Unit
     ): View {
         val normalColor = if (isDarkMode) {
@@ -961,7 +1038,40 @@ class KeyboardView(
             background = createKeyDrawable(normalColor, pressedColor, 6f)
             setPadding(0, 0, 0, 0)
             gravity = Gravity.CENTER
-            setOnClickListener { onClick() }
+
+            setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        v.isPressed = true
+                        onKeyFeedback?.invoke(feedbackType, v)
+                        true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val isInside = event.x >= -v.width * 0.4f &&
+                                       event.x <= v.width * 1.4f &&
+                                       event.y >= -v.height * 0.4f &&
+                                       event.y <= v.height * 1.4f
+                        if (!isInside && v.isPressed) {
+                            v.isPressed = false
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        val wasPressed = v.isPressed
+                        v.isPressed = false
+                        if (wasPressed) {
+                            v.performClick()
+                            onClick()
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_CANCEL -> {
+                        v.isPressed = false
+                        true
+                    }
+                    else -> false
+                }
+            }
         }
 
         val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight).apply {
@@ -984,51 +1094,56 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_key_pressed_light)
         }
 
-        val accentColor = if (isDarkMode) {
-            ContextCompat.getColor(context, R.color.heliboard_accent)
-        } else {
-            ContextCompat.getColor(context, R.color.heliboard_accent_light)
-        }
-
-        val subTextColor = if (isDarkMode) {
-            ContextCompat.getColor(context, R.color.heliboard_text_sub)
-        } else {
-            ContextCompat.getColor(context, R.color.heliboard_text_sub_light)
-        }
-
         val btn = ImageButton(context).apply {
             background = createKeyDrawable(normalColor, pressedColor, 6f)
             setPadding(0, 0, 0, 0)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
 
-            when (shiftState) {
-                ShiftState.OFF -> {
-                    setImageResource(R.drawable.ic_shift)
-                    setColorFilter(subTextColor)
-                }
-                ShiftState.ONCE -> {
-                    setImageResource(R.drawable.ic_shift)
-                    setColorFilter(accentColor)
-                }
-                ShiftState.CAPS_LOCK -> {
-                    setImageResource(R.drawable.ic_shift_caps)
-                    setColorFilter(accentColor)
-                }
-            }
+            updateShiftIcon(this)
 
-            setOnClickListener {
-                val now = System.currentTimeMillis()
-                if (now - lastShiftClickTime < 350) {
-                    shiftState = if (shiftState == ShiftState.CAPS_LOCK) ShiftState.OFF else ShiftState.CAPS_LOCK
-                } else {
-                    shiftState = when (shiftState) {
-                        ShiftState.OFF -> ShiftState.ONCE
-                        ShiftState.ONCE -> ShiftState.OFF
-                        ShiftState.CAPS_LOCK -> ShiftState.OFF
+            setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        v.isPressed = true
+                        onKeyFeedback?.invoke(KeyFeedbackType.ACTION, v)
+                        true
                     }
+                    MotionEvent.ACTION_MOVE -> {
+                        val isInside = event.x >= -v.width * 0.4f &&
+                                       event.x <= v.width * 1.4f &&
+                                       event.y >= -v.height * 0.4f &&
+                                       event.y <= v.height * 1.4f
+                        if (!isInside && v.isPressed) {
+                            v.isPressed = false
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        val wasPressed = v.isPressed
+                        v.isPressed = false
+                        if (wasPressed) {
+                            v.performClick()
+                            val now = System.currentTimeMillis()
+                            if (now - lastShiftClickTime < 350) {
+                                shiftState = if (shiftState == ShiftState.CAPS_LOCK) ShiftState.OFF else ShiftState.CAPS_LOCK
+                            } else {
+                                shiftState = when (shiftState) {
+                                    ShiftState.OFF -> ShiftState.ONCE
+                                    ShiftState.ONCE -> ShiftState.OFF
+                                    ShiftState.CAPS_LOCK -> ShiftState.OFF
+                                }
+                            }
+                            lastShiftClickTime = now
+                            updateAlphabetShiftState()
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_CANCEL -> {
+                        v.isPressed = false
+                        true
+                    }
+                    else -> false
                 }
-                lastShiftClickTime = now
-                renderKeyboard()
             }
         }
 
@@ -1064,14 +1179,17 @@ class KeyboardView(
             background = createKeyDrawable(normalColor, pressedColor, 6f)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
 
-            setOnTouchListener { _, event ->
+            setOnTouchListener { v, event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
+                        v.isPressed = true
+                        onKeyFeedback?.invoke(KeyFeedbackType.DELETE, v)
                         onBackspaceClicked?.invoke()
-                        startBackspaceRepeat()
+                        startBackspaceRepeat(v)
                         true
                     }
                     MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                        v.isPressed = false
                         stopBackspaceRepeat()
                         true
                     }
@@ -1087,15 +1205,16 @@ class KeyboardView(
         return btn
     }
 
-    private fun startBackspaceRepeat() {
+    private fun startBackspaceRepeat(targetView: View) {
         stopBackspaceRepeat()
         repeatRunnable = object : Runnable {
             override fun run() {
+                onKeyFeedback?.invoke(KeyFeedbackType.DELETE, targetView)
                 onBackspaceClicked?.invoke()
                 repeatHandler.postDelayed(this, 60)
             }
         }
-        repeatHandler.postDelayed(repeatRunnable!!, 400)
+        repeatHandler.postDelayed(repeatRunnable!!, 350)
     }
 
     private fun stopBackspaceRepeat() {
@@ -1117,8 +1236,39 @@ class KeyboardView(
             setColorFilter(Color.WHITE)
             background = createKeyDrawable(accentColor, 0x80FFFFFF.toInt(), 6f)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
-            setOnClickListener {
-                onEnterClicked?.invoke()
+
+            setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        v.isPressed = true
+                        onKeyFeedback?.invoke(KeyFeedbackType.RETURN, v)
+                        true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val isInside = event.x >= -v.width * 0.4f &&
+                                       event.x <= v.width * 1.4f &&
+                                       event.y >= -v.height * 0.4f &&
+                                       event.y <= v.height * 1.4f
+                        if (!isInside && v.isPressed) {
+                            v.isPressed = false
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        val wasPressed = v.isPressed
+                        v.isPressed = false
+                        if (wasPressed) {
+                            v.performClick()
+                            onEnterClicked?.invoke()
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_CANCEL -> {
+                        v.isPressed = false
+                        true
+                    }
+                    else -> false
+                }
             }
         }
 
@@ -1143,8 +1293,39 @@ class KeyboardView(
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             setPadding(0, 0, 0, 0)
             contentDescription = "Buka Kamera Scan"
-            setOnClickListener {
-                toggleScanner()
+
+            setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        v.isPressed = true
+                        onKeyFeedback?.invoke(KeyFeedbackType.ACTION, v)
+                        true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val isInside = event.x >= -v.width * 0.4f &&
+                                       event.x <= v.width * 1.4f &&
+                                       event.y >= -v.height * 0.4f &&
+                                       event.y <= v.height * 1.4f
+                        if (!isInside && v.isPressed) {
+                            v.isPressed = false
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        val wasPressed = v.isPressed
+                        v.isPressed = false
+                        if (wasPressed) {
+                            v.performClick()
+                            toggleScanner()
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_CANCEL -> {
+                        v.isPressed = false
+                        true
+                    }
+                    else -> false
+                }
             }
         }
 
