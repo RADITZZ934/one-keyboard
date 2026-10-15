@@ -70,6 +70,8 @@ class KeyboardView(
     val keyPreviewOverlay: FrameLayout = rootView.findViewById(R.id.keyPreviewOverlay)
     val keyPreviewBubble: FrameLayout = rootView.findViewById(R.id.keyPreviewBubble)
     val tvKeyPreviewChar: TextView = rootView.findViewById(R.id.tvKeyPreviewChar)
+    val materialKeyBalloonView: MaterialKeyBalloonView = rootView.findViewById(R.id.materialKeyBalloonView)
+    val moreKeysPillPopupView: MoreKeysPillPopupView = rootView.findViewById(R.id.moreKeysPillPopupView)
     val scannerContainer: FrameLayout = rootView.findViewById(R.id.scannerContainer)
     val previewView: PreviewView = rootView.findViewById(R.id.cameraPreviewView)
     val scannerOverlayView: ScannerOverlayView = rootView.findViewById(R.id.scannerOverlayView)
@@ -974,78 +976,20 @@ class KeyboardView(
             hidePreviewRunnable = null
         }
 
-        tvKeyPreviewChar.text = char
-        updatePreviewBubbleStyle()
-
-        val doPosition = {
-            val keyLoc = IntArray(2)
-            val rootLoc = IntArray(2)
-            keyView.getLocationInWindow(keyLoc)
-            rootView.getLocationInWindow(rootLoc)
-
-            val relativeX = (keyLoc[0] - rootLoc[0]).toFloat()
-            val relativeY = (keyLoc[1] - rootLoc[1]).toFloat()
-
-            val bubbleWidth = if (keyPreviewBubble.width > 0) keyPreviewBubble.width.toFloat() else dpToPx(54f)
-            val bubbleHeight = if (keyPreviewBubble.height > 0) keyPreviewBubble.height.toFloat() else dpToPx(54f)
-
-            // Center bubble horizontally above keyView
-            val keyCenterX = relativeX + (keyView.width / 2f)
-            var targetX = keyCenterX - (bubbleWidth / 2f)
-
-            // Keep within horizontal bounds of keyboard
-            val rootWidth = if (rootView.width > 0) rootView.width.toFloat() else context.resources.displayMetrics.widthPixels.toFloat()
-            val margin = dpToPx(4f)
-            targetX = targetX.coerceIn(margin, maxOf(margin, rootWidth - bubbleWidth - margin))
-
-            // Position vertically above the key by 10dp
-            val targetY = maxOf(dpToPx(4f), relativeY - bubbleHeight - dpToPx(10f))
-
-            keyPreviewBubble.translationX = targetX
-            keyPreviewBubble.translationY = targetY
-
-            keyPreviewBubble.visibility = View.VISIBLE
-            keyPreviewBubble.animate().cancel()
-            keyPreviewBubble.alpha = 1.0f
-            keyPreviewBubble.scaleX = 0.5f
-            keyPreviewBubble.scaleY = 0.5f
-            keyPreviewBubble.animate()
-                .scaleX(1.0f)
-                .scaleY(1.0f)
-                .setDuration(70)
-                .setInterpolator(OvershootInterpolator(1.4f))
-                .start()
-        }
-
-        if (keyView.width > 0 && rootView.width > 0) {
-            doPosition()
-        } else {
-            keyView.post(doPosition)
-        }
+        val prefs = KeyboardPreferences(context)
+        val fontScale = (prefs.keyboardScalePercent / 100f).coerceIn(0.85f, 1.25f)
+        materialKeyBalloonView.show(keyView, char, isDarkMode, fontScale, keyPreviewOverlay)
     }
 
     private fun hideCircleHighlight(delayMs: Long = 75L) {
         hidePreviewRunnable?.let { previewHandler.removeCallbacks(it) }
 
         if (delayMs <= 0) {
-            keyPreviewBubble.animate().cancel()
-            keyPreviewBubble.visibility = View.GONE
+            materialKeyBalloonView.dismiss(0L)
             return
         }
 
-        hidePreviewRunnable = Runnable {
-            keyPreviewBubble.animate().cancel()
-            keyPreviewBubble.animate()
-                .scaleX(0.7f)
-                .scaleY(0.7f)
-                .alpha(0f)
-                .setDuration(60)
-                .withEndAction {
-                    keyPreviewBubble.visibility = View.GONE
-                }
-                .start()
-        }
-        previewHandler.postDelayed(hidePreviewRunnable!!, delayMs)
+        materialKeyBalloonView.dismiss(delayMs)
     }
 
     private fun createKeyButton(
@@ -1141,14 +1085,25 @@ class KeyboardView(
                         showCircleHighlight(v, currentChar)
                         onKeyFeedback?.invoke(KeyFeedbackType.STANDARD, v)
 
-                        if (hint != null && prefs.isLongPressSymbolsEnabled) {
-                            longPressRunnable = Runnable {
-                                isLongPressTriggered = true
-                                showCircleHighlight(v, hint)
-                                onKeyFeedback?.invoke(KeyFeedbackType.ACTION, v)
-                                onClick(hint)
+                        if (prefs.isLongPressSymbolsEnabled) {
+                            val variants = KeyVariants.getVariants(currentChar, hint, shiftState != ShiftState.OFF)
+                            if (variants.isNotEmpty()) {
+                                longPressRunnable = Runnable {
+                                    isLongPressTriggered = true
+                                    materialKeyBalloonView.dismiss(0L)
+                                    moreKeysPillPopupView.show(v, variants, isDarkMode, fontScale, keyPreviewOverlay)
+                                    onKeyFeedback?.invoke(KeyFeedbackType.ACTION, v)
+                                }
+                                longPressHandler.postDelayed(longPressRunnable!!, 260L)
+                            } else if (hint != null) {
+                                longPressRunnable = Runnable {
+                                    isLongPressTriggered = true
+                                    showCircleHighlight(v, hint)
+                                    onKeyFeedback?.invoke(KeyFeedbackType.ACTION, v)
+                                    onClick(hint)
+                                }
+                                longPressHandler.postDelayed(longPressRunnable!!, 260L)
                             }
-                            longPressHandler.postDelayed(longPressRunnable!!, 280L)
                         }
                         true
                     }
@@ -1156,6 +1111,14 @@ class KeyboardView(
                         val dx = event.x - downX
                         val dy = event.y - downY
                         val distance = kotlin.math.hypot(dx, dy)
+
+                        if (isLongPressTriggered && moreKeysPillPopupView.visibility == View.VISIBLE) {
+                            val loc = IntArray(2)
+                            keyPreviewOverlay.getLocationInWindow(loc)
+                            val rootTouchX = event.rawX - loc[0]
+                            moreKeysPillPopupView.updateTouch(rootTouchX)
+                            return@setOnTouchListener true
+                        }
 
                         // Pilar 5: Quick Flick UP to directly type secondary hint/number (FUTO flick gesture)
                         if (hint != null && prefs.isLongPressSymbolsEnabled && !isLongPressTriggered && !isFlickTriggered) {
@@ -1181,6 +1144,7 @@ class KeyboardView(
                             v.isPressed = false
                             longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
                             hideCircleHighlight(delayMs = 0)
+                            moreKeysPillPopupView.dismiss(0L)
                         }
                         true
                     }
@@ -1188,13 +1152,22 @@ class KeyboardView(
                         longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
                         val wasPressed = v.isPressed
                         v.isPressed = false
-                        hideCircleHighlight(delayMs = 75)
-                        if (wasPressed && !isLongPressTriggered) {
-                            v.performClick()
-                            if (isFlickTriggered && hint != null) {
-                                onClick(hint)
-                            } else {
-                                onClick(mainTv.text.toString())
+
+                        if (isLongPressTriggered && moreKeysPillPopupView.visibility == View.VISIBLE) {
+                            val selectedChar = moreKeysPillPopupView.getSelectedChar()
+                            moreKeysPillPopupView.dismiss(0L)
+                            if (selectedChar != null) {
+                                onClick(selectedChar)
+                            }
+                        } else {
+                            hideCircleHighlight(delayMs = 75)
+                            if (wasPressed && !isLongPressTriggered) {
+                                v.performClick()
+                                if (isFlickTriggered && hint != null) {
+                                    onClick(hint)
+                                } else {
+                                    onClick(mainTv.text.toString())
+                                }
                             }
                         }
                         isFlickTriggered = false
@@ -1204,6 +1177,7 @@ class KeyboardView(
                         longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
                         v.isPressed = false
                         hideCircleHighlight(delayMs = 0)
+                        moreKeysPillPopupView.dismiss(0L)
                         isFlickTriggered = false
                         true
                     }

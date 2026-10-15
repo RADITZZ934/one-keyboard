@@ -507,6 +507,25 @@
         android:clipChildren="false"
         android:clipToPadding="false">
 
+        <!-- Material You Balloon Speech Bubble Preview -->
+        <com.example.barcodekeyboard.ui.keyboard.MaterialKeyBalloonView
+            android:id="@+id/materialKeyBalloonView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:focusable="false"
+            android:visibility="gone" />
+
+        <!-- Material You Long-Press MoreKeys Pill Sub-Menu -->
+        <com.example.barcodekeyboard.ui.keyboard.MoreKeysPillPopupView
+            android:id="@+id/moreKeysPillPopupView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:focusable="false"
+            android:visibility="gone" />
+
+        <!-- Legacy preview bubble (fallback) -->
         <FrameLayout
             android:id="@+id/keyPreviewBubble"
             android:layout_width="54dp"
