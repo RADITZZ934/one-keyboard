@@ -59,6 +59,42 @@ class VibrationHelper(context: Context) {
     }
 
     /**
+     * Damped micro-tick vibration specifically for repeated key presses (e.g. continuous Backspace deletion),
+     * preventing harsh rattling and thumb fatigue (inspired by FUTO Keyboard AudioAndHapticFeedbackManager).
+     */
+    fun vibrateRepeatKey(view: View? = null) {
+        if (view != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            val performed = try {
+                view.performHapticFeedback(
+                    HapticFeedbackConstants.TEXT_HANDLE_MOVE,
+                    HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+                )
+            } catch (e: Exception) {
+                false
+            }
+            if (performed) return
+        }
+
+        if (vibrator == null || !vibrator.hasVibrator()) return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                vibrator.vibrate(
+                    VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
+                )
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(
+                    VibrationEffect.createOneShot(4L, 45) // Half duration and softened amplitude
+                )
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(4L)
+            }
+        } catch (e: Exception) {
+            // silent ignore
+        }
+    }
+
+    /**
      * Slightly firmer tactile click for special functional keys (Backspace, Enter, Space).
      */
     fun vibrateKeyAction(view: View? = null) {

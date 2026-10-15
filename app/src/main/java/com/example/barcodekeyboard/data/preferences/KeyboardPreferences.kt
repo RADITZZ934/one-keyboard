@@ -33,6 +33,12 @@ class KeyboardPreferences(context: Context) {
 
         const val KEY_KEYBOARD_SCALE = "pref_keyboard_scale"
         const val DEFAULT_KEYBOARD_SCALE = 100
+
+        const val KEY_AUTO_CAPITALIZATION = "pref_auto_capitalization"
+        const val KEY_DOUBLE_SPACE_PERIOD = "pref_double_space_period"
+        const val KEY_SPACEBAR_CURSOR = "pref_spacebar_cursor"
+        const val KEY_SWIPE_DELETE = "pref_swipe_delete"
+        const val KEY_LONG_PRESS_SYMBOLS = "pref_long_press_symbols"
     }
 
     val themeMode: String
@@ -55,6 +61,21 @@ class KeyboardPreferences(context: Context) {
 
     val isAutoEnterEnabled: Boolean
         get() = prefs.getBoolean(KEY_AUTO_ENTER, false)
+
+    val isAutoCapitalizationEnabled: Boolean
+        get() = prefs.getBoolean(KEY_AUTO_CAPITALIZATION, true)
+
+    val isDoubleSpacePeriodEnabled: Boolean
+        get() = prefs.getBoolean(KEY_DOUBLE_SPACE_PERIOD, true)
+
+    val isSpacebarCursorEnabled: Boolean
+        get() = prefs.getBoolean(KEY_SPACEBAR_CURSOR, true)
+
+    val isSwipeDeleteEnabled: Boolean
+        get() = prefs.getBoolean(KEY_SWIPE_DELETE, true)
+
+    val isLongPressSymbolsEnabled: Boolean
+        get() = prefs.getBoolean(KEY_LONG_PRESS_SYMBOLS, true)
 
     val isVibrationEnabled: Boolean
         get() = prefs.getBoolean(KEY_VIBRATE, true)

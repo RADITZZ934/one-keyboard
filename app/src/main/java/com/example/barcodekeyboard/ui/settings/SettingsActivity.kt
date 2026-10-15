@@ -53,6 +53,13 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var tvKeyboardScaleSummary: TextView
     private lateinit var btnQuickResetScale: Button
 
+    // Views - Section: Kenyamanan Mengetik (Gboard Style)
+    private lateinit var switchAutoCapitalization: SwitchCompat
+    private lateinit var switchDoubleSpacePeriod: SwitchCompat
+    private lateinit var switchSpacebarCursor: SwitchCompat
+    private lateinit var switchSwipeDelete: SwitchCompat
+    private lateinit var switchLongPressSymbols: SwitchCompat
+
     // Views - Section 2: Scanner
     private lateinit var switchScannerSound: SwitchCompat
     private lateinit var switchScannerVibrate: SwitchCompat
@@ -79,6 +86,7 @@ class SettingsActivity : AppCompatActivity() {
         setupNavigation()
         setupThemeSection()
         setupKeyboardScaleSection()
+        setupTypingComfortSection()
         setupScannerSection()
         setupInfoSection()
     }
@@ -118,6 +126,12 @@ class SettingsActivity : AppCompatActivity() {
         rowKeyboardScale = findViewById(R.id.rowKeyboardScale)
         tvKeyboardScaleSummary = findViewById(R.id.tvKeyboardScaleSummary)
         btnQuickResetScale = findViewById(R.id.btnQuickResetScale)
+
+        switchAutoCapitalization = findViewById(R.id.switchAutoCapitalization)
+        switchDoubleSpacePeriod = findViewById(R.id.switchDoubleSpacePeriod)
+        switchSpacebarCursor = findViewById(R.id.switchSpacebarCursor)
+        switchSwipeDelete = findViewById(R.id.switchSwipeDelete)
+        switchLongPressSymbols = findViewById(R.id.switchLongPressSymbols)
 
         switchScannerSound = findViewById(R.id.switchScannerSound)
         switchScannerVibrate = findViewById(R.id.switchScannerVibrate)
@@ -290,6 +304,43 @@ class SettingsActivity : AppCompatActivity() {
             }
             .setNegativeButton("Batal", null)
             .show()
+    }
+
+    private fun setupTypingComfortSection() {
+        switchAutoCapitalization.isChecked = preferences.isAutoCapitalizationEnabled
+        switchAutoCapitalization.setOnCheckedChangeListener { _, isChecked ->
+            preferences.sharedPreferences.edit()
+                .putBoolean(KeyboardPreferences.KEY_AUTO_CAPITALIZATION, isChecked)
+                .apply()
+        }
+
+        switchDoubleSpacePeriod.isChecked = preferences.isDoubleSpacePeriodEnabled
+        switchDoubleSpacePeriod.setOnCheckedChangeListener { _, isChecked ->
+            preferences.sharedPreferences.edit()
+                .putBoolean(KeyboardPreferences.KEY_DOUBLE_SPACE_PERIOD, isChecked)
+                .apply()
+        }
+
+        switchSpacebarCursor.isChecked = preferences.isSpacebarCursorEnabled
+        switchSpacebarCursor.setOnCheckedChangeListener { _, isChecked ->
+            preferences.sharedPreferences.edit()
+                .putBoolean(KeyboardPreferences.KEY_SPACEBAR_CURSOR, isChecked)
+                .apply()
+        }
+
+        switchSwipeDelete.isChecked = preferences.isSwipeDeleteEnabled
+        switchSwipeDelete.setOnCheckedChangeListener { _, isChecked ->
+            preferences.sharedPreferences.edit()
+                .putBoolean(KeyboardPreferences.KEY_SWIPE_DELETE, isChecked)
+                .apply()
+        }
+
+        switchLongPressSymbols.isChecked = preferences.isLongPressSymbolsEnabled
+        switchLongPressSymbols.setOnCheckedChangeListener { _, isChecked ->
+            preferences.sharedPreferences.edit()
+                .putBoolean(KeyboardPreferences.KEY_LONG_PRESS_SYMBOLS, isChecked)
+                .apply()
+        }
     }
 
     private fun setupScannerSection() {

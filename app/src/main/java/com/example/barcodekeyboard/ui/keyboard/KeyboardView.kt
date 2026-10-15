@@ -59,7 +59,8 @@ class KeyboardView(
         ACTION,
         SPACE,
         DELETE,
-        RETURN
+        RETURN,
+        REPEAT_DELETE
     }
 
     val rootView: View = layoutInflater.inflate(R.layout.view_barcode_keyboard, null)
@@ -78,14 +79,28 @@ class KeyboardView(
     private val btnGrantPermission: Button = rootView.findViewById(R.id.btnGrantPermission)
     private val toolbarContainer: LinearLayout = rootView.findViewById(R.id.toolbarContainer)
 
-    // Toolbar buttons
-    private val btnToggleScanner: ImageButton = rootView.findViewById(R.id.btnToggleScanner)
+    // Toolbar buttons (FUTO & Bento dual-state action bar)
+    val btnToggleScanner: View = rootView.findViewById(R.id.btnToggleScanner)
+    private val ivScanIcon: ImageView = rootView.findViewById(R.id.ivScanIcon)
+    private val tvScanLabel: TextView = rootView.findViewById(R.id.tvScanLabel)
     private val btnFlash: ImageButton = rootView.findViewById(R.id.btnFlash)
     private val btnClipboard: ImageButton = rootView.findViewById(R.id.btnClipboard)
     private val btnPaste: ImageButton = rootView.findViewById(R.id.btnPaste)
     private val btnCursorLeft: ImageButton = rootView.findViewById(R.id.btnCursorLeft)
     private val btnCursorRight: ImageButton = rootView.findViewById(R.id.btnCursorRight)
+    private val btnToggleTools: ImageButton = rootView.findViewById(R.id.btnToggleTools)
     private val btnSettings: ImageButton = rootView.findViewById(R.id.btnSettings)
+
+    // Expandable Bento Tools Drawer Views
+    val toolsDrawerContainer: LinearLayout = rootView.findViewById(R.id.toolsDrawerContainer)
+    private val btnDrawerScan: TextView = rootView.findViewById(R.id.btnDrawerScan)
+    private val btnDrawerClipboard: TextView = rootView.findViewById(R.id.btnDrawerClipboard)
+    private val btnDrawerZoom: TextView = rootView.findViewById(R.id.btnDrawerZoom)
+    private val btnDrawerSize: TextView = rootView.findViewById(R.id.btnDrawerSize)
+    private val btnDrawerSettings: TextView = rootView.findViewById(R.id.btnDrawerSettings)
+    private val btnDrawerClose: ImageButton = rootView.findViewById(R.id.btnDrawerClose)
+    var isToolsDrawerOpen: Boolean = false
+        private set
 
     // Clipboard Panel Views
     private val clipboardContainer: LinearLayout = rootView.findViewById(R.id.clipboardContainer)
@@ -135,8 +150,27 @@ class KeyboardView(
     var onDoubleTapZoom: (() -> Unit)? = null
     var onPinchZoom: ((Float) -> Unit)? = null
     var onKeyFeedback: ((KeyFeedbackType, View?) -> Unit)? = null
+    var onDoubleSpaceClicked: (() -> Unit)? = null
+    var onDeleteWordClicked: (() -> Unit)? = null
+    var onKeyboardSizeClicked: (() -> Unit)? = null
 
     private var shiftButton: ImageButton? = null
+    private var lastSpaceTapTime = 0L
+
+    private val alphabetHintMap = mapOf(
+        "q" to "1", "w" to "2", "e" to "3", "r" to "4", "t" to "5",
+        "y" to "6", "u" to "7", "i" to "8", "o" to "9", "p" to "0",
+        "a" to "@", "s" to "#", "d" to "$", "f" to "%", "g" to "&",
+        "h" to "*", "j" to "-", "k" to "+", "l" to "(",
+        "z" to ")", "x" to "\"", "c" to "'", "v" to ":", "b" to ";",
+        "n" to "!", "m" to "?"
+    )
+
+    private class KeyCell(
+        context: Context,
+        val mainTextView: TextView,
+        val hintTextView: TextView?
+    ) : FrameLayout(context)
 
     // Backspace auto-repeat handler
     private val repeatHandler = Handler(Looper.getMainLooper())
@@ -178,6 +212,10 @@ class KeyboardView(
             toggleScanner()
         }
 
+        btnToggleTools.setOnClickListener {
+            toggleToolsDrawer()
+        }
+
         btnFlash.setOnClickListener {
             onFlashClicked?.invoke()
         }
@@ -204,6 +242,34 @@ class KeyboardView(
 
         btnGrantPermission.setOnClickListener {
             onGrantPermissionClicked?.invoke()
+        }
+
+        btnDrawerScan.setOnClickListener {
+            toggleToolsDrawer(false)
+            toggleScanner()
+        }
+
+        btnDrawerClipboard.setOnClickListener {
+            toggleToolsDrawer(false)
+            toggleClipboard()
+        }
+
+        btnDrawerZoom.setOnClickListener {
+            onQuickZoomClicked?.invoke()
+        }
+
+        btnDrawerSize.setOnClickListener {
+            toggleToolsDrawer(false)
+            onKeyboardSizeClicked?.invoke()
+        }
+
+        btnDrawerSettings.setOnClickListener {
+            toggleToolsDrawer(false)
+            onSettingsClicked?.invoke()
+        }
+
+        btnDrawerClose.setOnClickListener {
+            toggleToolsDrawer(false)
         }
     }
 
@@ -384,23 +450,63 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_text_light)
         }
 
-        btnToggleScanner.setColorFilter(if (isScannerOpen) accentColor else subTextColor)
+        // FUTO & Bento Scan Pill Styling
+        if (isScannerOpen) {
+            btnToggleScanner.setBackgroundResource(R.drawable.bg_bento_scan_pill)
+            ivScanIcon.setColorFilter(Color.WHITE)
+            tvScanLabel.setTextColor(Color.WHITE)
+        } else {
+            if (isDarkMode) {
+                btnToggleScanner.setBackgroundResource(R.drawable.bg_bento_pill_dark)
+                ivScanIcon.setColorFilter(accentColor)
+                tvScanLabel.setTextColor(primaryTextColor)
+            } else {
+                btnToggleScanner.setBackgroundResource(R.drawable.bg_bento_pill_cream)
+                ivScanIcon.setColorFilter(accentColor)
+                tvScanLabel.setTextColor(primaryTextColor)
+            }
+        }
+
         btnClipboard.setColorFilter(if (isClipboardOpen) accentColor else subTextColor)
         btnPaste.setColorFilter(primaryTextColor)
         btnCursorLeft.setColorFilter(subTextColor)
         btnCursorRight.setColorFilter(subTextColor)
         btnSettings.setColorFilter(subTextColor)
+        btnToggleTools.setColorFilter(if (isToolsDrawerOpen) accentColor else subTextColor)
+        btnDrawerClose.setColorFilter(subTextColor)
+
+        val drawerPillBg = if (isDarkMode) R.drawable.bg_bento_pill_dark else R.drawable.bg_bento_pill_cream
+        btnDrawerScan.setBackgroundResource(drawerPillBg)
+        btnDrawerClipboard.setBackgroundResource(drawerPillBg)
+        btnDrawerZoom.setBackgroundResource(drawerPillBg)
+        btnDrawerSize.setBackgroundResource(drawerPillBg)
+        btnDrawerSettings.setBackgroundResource(drawerPillBg)
+        btnDrawerScan.setTextColor(primaryTextColor)
+        btnDrawerClipboard.setTextColor(primaryTextColor)
+        btnDrawerZoom.setTextColor(primaryTextColor)
+        btnDrawerSize.setTextColor(primaryTextColor)
+        btnDrawerSettings.setTextColor(primaryTextColor)
 
         if (::clipboardAdapter.isInitialized) {
             clipboardAdapter.updateData(clipboardHistoryManager.getClips(), isDarkMode)
         }
     }
 
+    fun toggleToolsDrawer(forceOpen: Boolean? = null) {
+        isToolsDrawerOpen = forceOpen ?: !isToolsDrawerOpen
+        toolsDrawerContainer.visibility = if (isToolsDrawerOpen) View.VISIBLE else View.GONE
+        val accentColor = if (isDarkMode) ContextCompat.getColor(context, R.color.heliboard_accent) else ContextCompat.getColor(context, R.color.heliboard_accent_light)
+        val subTextColor = if (isDarkMode) ContextCompat.getColor(context, R.color.heliboard_text_sub) else ContextCompat.getColor(context, R.color.heliboard_text_sub_light)
+        btnToggleTools.setColorFilter(if (isToolsDrawerOpen) accentColor else subTextColor)
+        onKeyFeedback?.invoke(KeyFeedbackType.ACTION, btnToggleTools)
+    }
+
     fun toggleScanner(forceOpen: Boolean? = null) {
         hideCircleHighlight(0)
         isScannerOpen = forceOpen ?: !isScannerOpen
-        if (isScannerOpen && isClipboardOpen) {
-            toggleClipboard(false)
+        if (isScannerOpen) {
+            if (isClipboardOpen) toggleClipboard(false)
+            if (isToolsDrawerOpen) toggleToolsDrawer(false)
         }
         scannerContainer.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
         btnFlash.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
@@ -456,6 +562,9 @@ class KeyboardView(
         if (isClipboardOpen) {
             if (isScannerOpen) {
                 toggleScanner(false)
+            }
+            if (isToolsDrawerOpen) {
+                toggleToolsDrawer(false)
             }
             clipboardContainer.visibility = View.VISIBLE
             keypadContainer.visibility = View.GONE
@@ -586,8 +695,10 @@ class KeyboardView(
 
     private fun renderNumberRow() {
         val numbers = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
-        for (num in numbers) {
-            rowNumber.addView(createKeyButton(num, 1f) { char ->
+        for ((index, num) in numbers.withIndex()) {
+            val isLeft = (index == 0)
+            val isRight = (index == numbers.lastIndex)
+            rowNumber.addView(createKeyButton(num, 1f, null, isLeftEdge = isLeft, isRightEdge = isRight) { char ->
                 handleCharInput(char)
             })
         }
@@ -598,9 +709,12 @@ class KeyboardView(
 
         // Row 1: q w e r t y u i o p
         val r1Keys = listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p")
-        for (k in r1Keys) {
+        for ((index, k) in r1Keys.withIndex()) {
             val label = if (isUpper) k.toUpperCase(java.util.Locale.ROOT) else k
-            row1.addView(createKeyButton(label, 1f) { char ->
+            val hint = alphabetHintMap[k]
+            val isLeft = (index == 0)
+            val isRight = (index == r1Keys.lastIndex)
+            row1.addView(createKeyButton(label, 1f, hint, isLeftEdge = isLeft, isRightEdge = isRight) { char ->
                 handleCharInput(char)
             })
         }
@@ -608,69 +722,74 @@ class KeyboardView(
         // Row 2: a s d f g h j k l
         val r2Keys = listOf("a", "s", "d", "f", "g", "h", "j", "k", "l")
         row2.addView(createSpacer(0.5f))
-        for (k in r2Keys) {
+        for ((index, k) in r2Keys.withIndex()) {
             val label = if (isUpper) k.toUpperCase(java.util.Locale.ROOT) else k
-            row2.addView(createKeyButton(label, 1f) { char ->
+            val hint = alphabetHintMap[k]
+            val isLeft = (index == 0)
+            val isRight = (index == r2Keys.lastIndex)
+            row2.addView(createKeyButton(label, 1f, hint, isLeftEdge = isLeft, isRightEdge = isRight) { char ->
                 handleCharInput(char)
             })
         }
         row2.addView(createSpacer(0.5f))
 
         // Row 3: [Shift] z x c v b n m [Backspace]
-        val shiftBtn = createShiftButton(1.5f)
+        val shiftBtn = createShiftButton(1.5f, isLeftEdge = true)
         shiftButton = shiftBtn as? ImageButton
         row3.addView(shiftBtn)
 
         val r3Keys = listOf("z", "x", "c", "v", "b", "n", "m")
         for (k in r3Keys) {
             val label = if (isUpper) k.toUpperCase(java.util.Locale.ROOT) else k
-            row3.addView(createKeyButton(label, 1f) { char ->
+            val hint = alphabetHintMap[k]
+            row3.addView(createKeyButton(label, 1f, hint, isBottomRow = true) { char ->
                 handleCharInput(char)
             })
         }
 
-        row3.addView(createBackspaceButton(1.5f))
+        row3.addView(createBackspaceButton(1.5f, isRightEdge = true))
 
-        // Row 4: [?123] [,] [📷 Scan (Biru)] [   Spasi   ] [.] [Enter]
-        val modeBtn = createFunctionButton("?123", 1.4f, KeyFeedbackType.ACTION) {
+        // Row 4: [?123] [,] [📷 Scan (Biru)] [   One Keyboard   ] [.] [Enter]
+        val modeBtn = createFunctionButton("?123", 1.4f, KeyFeedbackType.ACTION, isLeftEdge = true, isBottomRow = true) {
             currentMode = KeyboardMode.SYMBOLS
             renderKeyboard()
         }
         row4.addView(modeBtn)
 
-        row4.addView(createKeyButton(",", 0.9f) { char ->
+        row4.addView(createKeyButton(",", 0.9f, "<", isBottomRow = true) { char ->
             handleCharInput(char)
         })
 
         // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
-        row4.addView(createScanButton(1.3f))
+        row4.addView(createScanButton(1.3f, isBottomRow = true))
 
-        val spaceBtn = createFunctionButton("Spasi", 3.8f, KeyFeedbackType.SPACE) {
-            onSpaceClicked?.invoke()
-        }
-        row4.addView(spaceBtn)
+        row4.addView(createSpaceButton(3.8f, isBottomRow = true))
 
-        row4.addView(createKeyButton(".", 0.9f) { char ->
+        row4.addView(createKeyButton(".", 0.9f, ">", isBottomRow = true) { char ->
             handleCharInput(char)
         })
 
-        row4.addView(createEnterButton(1.7f))
+        row4.addView(createEnterButton(1.7f, isRightEdge = true, isBottomRow = true))
     }
 
     private fun renderSymbolsLayout() {
         shiftButton = null
 
         val r1 = listOf("@", "#", "$", "%", "&", "-", "+", "(", ")", "/")
-        for (k in r1) {
-            row1.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
+        for ((index, k) in r1.withIndex()) {
+            val isLeft = (index == 0)
+            val isRight = (index == r1.lastIndex)
+            row1.addView(createKeyButton(k, 1f, null, isLeftEdge = isLeft, isRightEdge = isRight) { char -> handleCharInput(char) })
         }
 
         val r2 = listOf("*", "\"", "'", ":", ";", "!", "?", "/", "\\", "_")
-        for (k in r2) {
-            row2.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
+        for ((index, k) in r2.withIndex()) {
+            val isLeft = (index == 0)
+            val isRight = (index == r2.lastIndex)
+            row2.addView(createKeyButton(k, 1f, null, isLeftEdge = isLeft, isRightEdge = isRight) { char -> handleCharInput(char) })
         }
 
-        val moreSymBtn = createFunctionButton("=\\<", 1.4f, KeyFeedbackType.ACTION) {
+        val moreSymBtn = createFunctionButton("=\\<", 1.4f, KeyFeedbackType.ACTION, isLeftEdge = true) {
             currentMode = KeyboardMode.MORE_SYMBOLS
             renderKeyboard()
         }
@@ -678,46 +797,47 @@ class KeyboardView(
 
         val r3 = listOf("~", "`", "|", "^", "=", "{", "}")
         for (k in r3) {
-            row3.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
+            row3.addView(createKeyButton(k, 1f, null, isBottomRow = true) { char -> handleCharInput(char) })
         }
 
-        row3.addView(createBackspaceButton(1.5f))
+        row3.addView(createBackspaceButton(1.5f, isRightEdge = true))
 
-        val abcBtn = createFunctionButton("ABC", 1.4f, KeyFeedbackType.ACTION) {
+        val abcBtn = createFunctionButton("ABC", 1.4f, KeyFeedbackType.ACTION, isLeftEdge = true, isBottomRow = true) {
             currentMode = KeyboardMode.ALPHABET
             renderKeyboard()
         }
         row4.addView(abcBtn)
 
-        row4.addView(createKeyButton(",", 0.9f) { char -> handleCharInput(char) })
+        row4.addView(createKeyButton(",", 0.9f, null, isBottomRow = true) { char -> handleCharInput(char) })
 
         // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
-        row4.addView(createScanButton(1.3f))
+        row4.addView(createScanButton(1.3f, isBottomRow = true))
 
-        val spaceBtn = createFunctionButton("Spasi", 3.8f, KeyFeedbackType.SPACE) {
-            onSpaceClicked?.invoke()
-        }
-        row4.addView(spaceBtn)
+        row4.addView(createSpaceButton(3.8f, isBottomRow = true))
 
-        row4.addView(createKeyButton(".", 0.9f) { char -> handleCharInput(char) })
+        row4.addView(createKeyButton(".", 0.9f, null, isBottomRow = true) { char -> handleCharInput(char) })
 
-        row4.addView(createEnterButton(1.7f))
+        row4.addView(createEnterButton(1.7f, isRightEdge = true, isBottomRow = true))
     }
 
     private fun renderMoreSymbolsLayout() {
         shiftButton = null
 
         val r1 = listOf("~", "`", "|", "^", "_", "=", "{", "}", "[", "]")
-        for (k in r1) {
-            row1.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
+        for ((index, k) in r1.withIndex()) {
+            val isLeft = (index == 0)
+            val isRight = (index == r1.lastIndex)
+            row1.addView(createKeyButton(k, 1f, null, isLeftEdge = isLeft, isRightEdge = isRight) { char -> handleCharInput(char) })
         }
 
         val r2 = listOf("<", ">", "€", "£", "¥", "¢", "\\", "§", "°", "¿")
-        for (k in r2) {
-            row2.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
+        for ((index, k) in r2.withIndex()) {
+            val isLeft = (index == 0)
+            val isRight = (index == r2.lastIndex)
+            row2.addView(createKeyButton(k, 1f, null, isLeftEdge = isLeft, isRightEdge = isRight) { char -> handleCharInput(char) })
         }
 
-        val symBtn = createFunctionButton("?123", 1.4f, KeyFeedbackType.ACTION) {
+        val symBtn = createFunctionButton("?123", 1.4f, KeyFeedbackType.ACTION, isLeftEdge = true) {
             currentMode = KeyboardMode.SYMBOLS
             renderKeyboard()
         }
@@ -725,30 +845,27 @@ class KeyboardView(
 
         val r3 = listOf("«", "»", "¡", "©", "®", "™", "±")
         for (k in r3) {
-            row3.addView(createKeyButton(k, 1f) { char -> handleCharInput(char) })
+            row3.addView(createKeyButton(k, 1f, null, isBottomRow = true) { char -> handleCharInput(char) })
         }
 
-        row3.addView(createBackspaceButton(1.5f))
+        row3.addView(createBackspaceButton(1.5f, isRightEdge = true))
 
-        val abcBtn = createFunctionButton("ABC", 1.4f, KeyFeedbackType.ACTION) {
+        val abcBtn = createFunctionButton("ABC", 1.4f, KeyFeedbackType.ACTION, isLeftEdge = true, isBottomRow = true) {
             currentMode = KeyboardMode.ALPHABET
             renderKeyboard()
         }
         row4.addView(abcBtn)
 
-        row4.addView(createKeyButton(",", 0.9f) { char -> handleCharInput(char) })
+        row4.addView(createKeyButton(",", 0.9f, null, isBottomRow = true) { char -> handleCharInput(char) })
 
         // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
-        row4.addView(createScanButton(1.3f))
+        row4.addView(createScanButton(1.3f, isBottomRow = true))
 
-        val spaceBtn = createFunctionButton("Spasi", 3.8f, KeyFeedbackType.SPACE) {
-            onSpaceClicked?.invoke()
-        }
-        row4.addView(spaceBtn)
+        row4.addView(createSpaceButton(3.8f, isBottomRow = true))
 
-        row4.addView(createKeyButton(".", 0.9f) { char -> handleCharInput(char) })
+        row4.addView(createKeyButton(".", 0.9f, null, isBottomRow = true) { char -> handleCharInput(char) })
 
-        row4.addView(createEnterButton(1.7f))
+        row4.addView(createEnterButton(1.7f, isRightEdge = true, isBottomRow = true))
     }
 
     private fun handleCharInput(char: String) {
@@ -776,7 +893,10 @@ class KeyboardView(
         fun updateRowButtons(row: LinearLayout) {
             for (i in 0 until row.childCount) {
                 val v = row.getChildAt(i)
-                if (v is Button) {
+                if (v is KeyCell) {
+                    val current = v.mainTextView.text.toString()
+                    v.mainTextView.text = if (isUpper) current.toUpperCase(java.util.Locale.ROOT) else current.toLowerCase(java.util.Locale.ROOT)
+                } else if (v is Button) {
                     val current = v.text.toString()
                     v.text = if (isUpper) current.toUpperCase(java.util.Locale.ROOT) else current.toLowerCase(java.util.Locale.ROOT)
                 }
@@ -786,6 +906,13 @@ class KeyboardView(
         updateRowButtons(row1)
         updateRowButtons(row2)
         updateRowButtons(row3)
+    }
+
+    fun updateShiftState(state: ShiftState) {
+        if (shiftState != state) {
+            shiftState = state
+            updateAlphabetShiftState()
+        }
     }
 
     private fun updateShiftIcon(btn: ImageButton) {
@@ -924,6 +1051,10 @@ class KeyboardView(
     private fun createKeyButton(
         text: String,
         weight: Float,
+        hint: String? = null,
+        isLeftEdge: Boolean = false,
+        isRightEdge: Boolean = false,
+        isBottomRow: Boolean = false,
         onClick: (String) -> Unit
     ): View {
         val normalColor = if (isDarkMode) {
@@ -944,51 +1075,136 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_text_light)
         }
 
-        val scale = KeyboardPreferences(context).keyboardScalePercent / 100f
-        val fontScale = scale.coerceIn(0.85f, 1.25f)
+        val hintColor = if (isDarkMode) {
+            Color.parseColor("#8E9CAE")
+        } else {
+            Color.parseColor("#7A8B9E")
+        }
 
-        val btn = Button(context).apply {
+        val prefs = KeyboardPreferences(context)
+        val scale = prefs.keyboardScalePercent / 100f
+        val fontScale = scale.coerceIn(0.85f, 1.25f)
+        val showHint = hint != null && prefs.isLongPressSymbolsEnabled
+
+        val mainTv = TextView(context).apply {
             this.text = text
-            isAllCaps = false
             textSize = 17f * fontScale
             setTextColor(textColor)
-            background = createKeyDrawable(normalColor, pressedColor, 6f)
-            setPadding(0, 0, 0, 0)
             gravity = Gravity.CENTER
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        }
+
+        val hintTv = if (showHint) {
+            TextView(context).apply {
+                this.text = hint
+                textSize = 9.5f * fontScale
+                setTextColor(hintColor)
+                gravity = Gravity.CENTER
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = Gravity.TOP or Gravity.END
+                    topMargin = dpToPx(2.5f).toInt()
+                    rightMargin = dpToPx(4.5f).toInt()
+                }
+            }
+        } else null
+
+        val cell = KeyCell(context, mainTv, hintTv).apply {
+            background = createKeyDrawable(normalColor, pressedColor, 8f)
+            addView(mainTv)
+            if (hintTv != null) addView(hintTv)
+
+            var isLongPressTriggered = false
+            var isFlickTriggered = false
+            var downX = 0f
+            var downY = 0f
+            var downTime = 0L
+            var longPressRunnable: Runnable? = null
+            val longPressHandler = Handler(Looper.getMainLooper())
 
             setOnTouchListener { v, event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         v.isPressed = true
-                        val currentChar = this.text.toString()
+                        isLongPressTriggered = false
+                        isFlickTriggered = false
+                        downX = event.x
+                        downY = event.y
+                        downTime = System.currentTimeMillis()
+
+                        val currentChar = mainTv.text.toString()
                         showCircleHighlight(v, currentChar)
                         onKeyFeedback?.invoke(KeyFeedbackType.STANDARD, v)
+
+                        if (hint != null && prefs.isLongPressSymbolsEnabled) {
+                            longPressRunnable = Runnable {
+                                isLongPressTriggered = true
+                                showCircleHighlight(v, hint)
+                                onKeyFeedback?.invoke(KeyFeedbackType.ACTION, v)
+                                onClick(hint)
+                            }
+                            longPressHandler.postDelayed(longPressRunnable!!, 280L)
+                        }
                         true
                     }
                     MotionEvent.ACTION_MOVE -> {
-                        val isInside = event.x >= -v.width * 0.4f &&
-                                       event.x <= v.width * 1.4f &&
-                                       event.y >= -v.height * 0.4f &&
-                                       event.y <= v.height * 1.4f
+                        val dx = event.x - downX
+                        val dy = event.y - downY
+                        val distance = kotlin.math.hypot(dx, dy)
+
+                        // Pilar 5: Quick Flick UP to directly type secondary hint/number (FUTO flick gesture)
+                        if (hint != null && prefs.isLongPressSymbolsEnabled && !isLongPressTriggered && !isFlickTriggered) {
+                            val elapsed = System.currentTimeMillis() - downTime
+                            if (dy < -dpToPx(16f) && elapsed < 260L) {
+                                isFlickTriggered = true
+                                longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
+                                showCircleHighlight(v, hint)
+                                onKeyFeedback?.invoke(KeyFeedbackType.ACTION, v)
+                            }
+                        }
+
+                        // Pilar 1 & 6: Edge key hitbox extension + Proximity vertical extension
+                        val minX = if (isLeftEdge) -1000f else -v.width * 0.45f
+                        val maxX = if (isRightEdge) 1000f else v.width * 1.45f
+                        val maxY = if (isBottomRow) v.height * 1.75f else v.height * 1.45f
+                        val minY = -v.height * 0.45f
+
+                        // Pilar 2: Key Hysteresis Anti-Jitter (distance <= 14dp keeps key held)
+                        val isInside = (distance <= dpToPx(14f)) || (event.x in minX..maxX && event.y in minY..maxY)
+
                         if (!isInside && v.isPressed) {
                             v.isPressed = false
+                            longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
                             hideCircleHighlight(delayMs = 0)
                         }
                         true
                     }
                     MotionEvent.ACTION_UP -> {
+                        longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
                         val wasPressed = v.isPressed
                         v.isPressed = false
                         hideCircleHighlight(delayMs = 75)
-                        if (wasPressed) {
+                        if (wasPressed && !isLongPressTriggered) {
                             v.performClick()
-                            onClick(this.text.toString())
+                            if (isFlickTriggered && hint != null) {
+                                onClick(hint)
+                            } else {
+                                onClick(mainTv.text.toString())
+                            }
                         }
+                        isFlickTriggered = false
                         true
                     }
                     MotionEvent.ACTION_CANCEL -> {
+                        longPressRunnable?.let { longPressHandler.removeCallbacks(it) }
                         v.isPressed = false
                         hideCircleHighlight(delayMs = 0)
+                        isFlickTriggered = false
                         true
                     }
                     else -> false
@@ -996,10 +1212,116 @@ class KeyboardView(
             }
         }
 
-        val params = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight).apply {
+        cell.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight).apply {
             setMargins(3, 0, 3, 0)
         }
-        btn.layoutParams = params
+        return cell
+    }
+
+    private fun createSpaceButton(weight: Float, isBottomRow: Boolean = true): View {
+        val normalColor = if (isDarkMode) {
+            ContextCompat.getColor(context, R.color.heliboard_key_bg)
+        } else {
+            ContextCompat.getColor(context, R.color.heliboard_key_bg_light)
+        }
+
+        val pressedColor = if (isDarkMode) {
+            ContextCompat.getColor(context, R.color.heliboard_key_pressed)
+        } else {
+            ContextCompat.getColor(context, R.color.heliboard_key_pressed_light)
+        }
+
+        val textColor = if (isDarkMode) {
+            Color.parseColor("#8E9CAE")
+        } else {
+            Color.parseColor("#7A8B9E")
+        }
+
+        val prefs = KeyboardPreferences(context)
+        val scale = prefs.keyboardScalePercent / 100f
+        val fontScale = scale.coerceIn(0.85f, 1.25f)
+
+        val btn = Button(context).apply {
+            text = "One Keyboard"
+            isAllCaps = false
+            textSize = 12f * fontScale
+            setTextColor(textColor)
+            background = createKeyDrawable(normalColor, pressedColor, 8f)
+            setPadding(0, 0, 0, 0)
+            gravity = Gravity.CENTER
+
+            var startX = 0f
+            var lastStepX = 0f
+            var downTime = 0L
+            var isGliding = false
+
+            setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        v.isPressed = true
+                        startX = event.x
+                        lastStepX = event.x
+                        downTime = System.currentTimeMillis()
+                        isGliding = false
+                        onKeyFeedback?.invoke(KeyFeedbackType.SPACE, v)
+                        true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        if (prefs.isSpacebarCursorEnabled) {
+                            val elapsed = System.currentTimeMillis() - downTime
+                            val distFromStart = kotlin.math.abs(event.x - startX)
+                            // Pilar 3: FUTO debounce delay (90ms & 12dp) to prevent accidental glides
+                            if (elapsed > 90L && distFromStart > dpToPx(12f)) {
+                                isGliding = true
+                            }
+                            if (isGliding) {
+                                val pointerStep = dpToPx(16f) // FUTO sPointerStep = 16dp
+                                val diff = event.x - lastStepX
+                                val steps = (diff / pointerStep).toInt()
+                                if (steps != 0) {
+                                    lastStepX += steps * pointerStep
+                                    if (steps > 0) {
+                                        repeat(steps) { onCursorRightClicked?.invoke() }
+                                    } else {
+                                        repeat(-steps) { onCursorLeftClicked?.invoke() }
+                                    }
+                                }
+                            }
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        val wasPressed = v.isPressed
+                        v.isPressed = false
+                        if (wasPressed) {
+                            if (!isGliding) {
+                                v.performClick()
+                                val now = System.currentTimeMillis()
+                                if (prefs.isDoubleSpacePeriodEnabled && (now - lastSpaceTapTime < 320L)) {
+                                    lastSpaceTapTime = 0L
+                                    onDoubleSpaceClicked?.invoke()
+                                } else {
+                                    lastSpaceTapTime = now
+                                    onSpaceClicked?.invoke()
+                                }
+                            }
+                        }
+                        isGliding = false
+                        true
+                    }
+                    MotionEvent.ACTION_CANCEL -> {
+                        v.isPressed = false
+                        isGliding = false
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }
+
+        btn.layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, weight).apply {
+            setMargins(3, 0, 3, 0)
+        }
         return btn
     }
 
@@ -1007,6 +1329,9 @@ class KeyboardView(
         text: String,
         weight: Float,
         feedbackType: KeyFeedbackType = KeyFeedbackType.ACTION,
+        isLeftEdge: Boolean = false,
+        isRightEdge: Boolean = false,
+        isBottomRow: Boolean = false,
         onClick: () -> Unit
     ): View {
         val normalColor = if (isDarkMode) {
@@ -1035,22 +1360,29 @@ class KeyboardView(
             isAllCaps = false
             textSize = 13f * fontScale
             setTextColor(textColor)
-            background = createKeyDrawable(normalColor, pressedColor, 6f)
+            background = createKeyDrawable(normalColor, pressedColor, 8f)
             setPadding(0, 0, 0, 0)
             gravity = Gravity.CENTER
+
+            var downX = 0f
+            var downY = 0f
 
             setOnTouchListener { v, event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         v.isPressed = true
+                        downX = event.x
+                        downY = event.y
                         onKeyFeedback?.invoke(feedbackType, v)
                         true
                     }
                     MotionEvent.ACTION_MOVE -> {
-                        val isInside = event.x >= -v.width * 0.4f &&
-                                       event.x <= v.width * 1.4f &&
-                                       event.y >= -v.height * 0.4f &&
-                                       event.y <= v.height * 1.4f
+                        val distance = kotlin.math.hypot(event.x - downX, event.y - downY)
+                        val minX = if (isLeftEdge) -1000f else -v.width * 0.45f
+                        val maxX = if (isRightEdge) 1000f else v.width * 1.45f
+                        val maxY = if (isBottomRow) v.height * 1.75f else v.height * 1.45f
+                        val minY = -v.height * 0.45f
+                        val isInside = (distance <= dpToPx(14f)) || (event.x in minX..maxX && event.y in minY..maxY)
                         if (!isInside && v.isPressed) {
                             v.isPressed = false
                         }
@@ -1080,8 +1412,7 @@ class KeyboardView(
         btn.layoutParams = params
         return btn
     }
-
-    private fun createShiftButton(weight: Float): View {
+    private fun createShiftButton(weight: Float, isLeftEdge: Boolean = true): View {
         val normalColor = if (isDarkMode) {
             ContextCompat.getColor(context, R.color.heliboard_key_function)
         } else {
@@ -1095,24 +1426,31 @@ class KeyboardView(
         }
 
         val btn = ImageButton(context).apply {
-            background = createKeyDrawable(normalColor, pressedColor, 6f)
+            background = createKeyDrawable(normalColor, pressedColor, 8f)
             setPadding(0, 0, 0, 0)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
 
             updateShiftIcon(this)
 
+            var downX = 0f
+            var downY = 0f
+
             setOnTouchListener { v, event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         v.isPressed = true
+                        downX = event.x
+                        downY = event.y
                         onKeyFeedback?.invoke(KeyFeedbackType.ACTION, v)
                         true
                     }
                     MotionEvent.ACTION_MOVE -> {
-                        val isInside = event.x >= -v.width * 0.4f &&
-                                       event.x <= v.width * 1.4f &&
-                                       event.y >= -v.height * 0.4f &&
-                                       event.y <= v.height * 1.4f
+                        val distance = kotlin.math.hypot(event.x - downX, event.y - downY)
+                        val minX = if (isLeftEdge) -1000f else -v.width * 0.45f
+                        val maxX = v.width * 1.45f
+                        val maxY = v.height * 1.45f
+                        val minY = -v.height * 0.45f
+                        val isInside = (distance <= dpToPx(14f)) || (event.x in minX..maxX && event.y in minY..maxY)
                         if (!isInside && v.isPressed) {
                             v.isPressed = false
                         }
@@ -1154,7 +1492,7 @@ class KeyboardView(
         return btn
     }
 
-    private fun createBackspaceButton(weight: Float): View {
+    private fun createBackspaceButton(weight: Float, isRightEdge: Boolean = true): View {
         val normalColor = if (isDarkMode) {
             ContextCompat.getColor(context, R.color.heliboard_key_function)
         } else {
@@ -1173,24 +1511,60 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_text_sub_light)
         }
 
+        val prefs = KeyboardPreferences(context)
+
         val btn = ImageButton(context).apply {
             setImageResource(R.drawable.ic_backspace)
             setColorFilter(subTextColor)
-            background = createKeyDrawable(normalColor, pressedColor, 6f)
+            background = createKeyDrawable(normalColor, pressedColor, 8f)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
+
+            var downX = 0f
+            var downY = 0f
+            var isSwipingWord = false
 
             setOnTouchListener { v, event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         v.isPressed = true
+                        downX = event.x
+                        downY = event.y
+                        isSwipingWord = false
                         onKeyFeedback?.invoke(KeyFeedbackType.DELETE, v)
                         onBackspaceClicked?.invoke()
                         startBackspaceRepeat(v)
                         true
                     }
+                    MotionEvent.ACTION_MOVE -> {
+                        if (prefs.isSwipeDeleteEnabled && v.isPressed) {
+                            val swipeLeftDist = downX - event.x
+                            // Pilar 3: FUTO sPointerBigStep = 32dp per word
+                            if (swipeLeftDist > dpToPx(32f)) {
+                                isSwipingWord = true
+                                stopBackspaceRepeat()
+                                onDeleteWordClicked?.invoke()
+                                onKeyFeedback?.invoke(KeyFeedbackType.DELETE, v)
+                                downX = event.x
+                            }
+                        }
+                        val distance = kotlin.math.hypot(event.x - downX, event.y - downY)
+                        val minX = -v.width * 0.45f
+                        val maxX = if (isRightEdge) 1000f else v.width * 1.45f
+                        val maxY = v.height * 1.45f
+                        val minY = -v.height * 0.45f
+                        val isInside = (distance <= dpToPx(14f)) || (event.x in minX..maxX && event.y in minY..maxY)
+                        if (!isInside && v.isPressed && !isSwipingWord) {
+                            v.isPressed = false
+                            stopBackspaceRepeat()
+                        }
+                        true
+                    }
                     MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                         v.isPressed = false
                         stopBackspaceRepeat()
+                        if (isSwipingWord) {
+                            isSwipingWord = false
+                        }
                         true
                     }
                     else -> false
@@ -1207,14 +1581,18 @@ class KeyboardView(
 
     private fun startBackspaceRepeat(targetView: View) {
         stopBackspaceRepeat()
+        var repeatCount = 0
         repeatRunnable = object : Runnable {
             override fun run() {
-                onKeyFeedback?.invoke(KeyFeedbackType.DELETE, targetView)
+                repeatCount++
+                // Pilar 4: Damped micro-tick vibration during repeated Backspace deletion
+                onKeyFeedback?.invoke(KeyFeedbackType.REPEAT_DELETE, targetView)
                 onBackspaceClicked?.invoke()
-                repeatHandler.postDelayed(this, 60)
+                val nextDelay = if (repeatCount > 10) 35L else 55L
+                repeatHandler.postDelayed(this, nextDelay)
             }
         }
-        repeatHandler.postDelayed(repeatRunnable!!, 350)
+        repeatHandler.postDelayed(repeatRunnable!!, 320)
     }
 
     private fun stopBackspaceRepeat() {
@@ -1224,7 +1602,11 @@ class KeyboardView(
         }
     }
 
-    private fun createEnterButton(weight: Float): View {
+    private fun createEnterButton(
+        weight: Float,
+        isRightEdge: Boolean = true,
+        isBottomRow: Boolean = true
+    ): View {
         val accentColor = if (isDarkMode) {
             ContextCompat.getColor(context, R.color.heliboard_accent)
         } else {
@@ -1234,21 +1616,28 @@ class KeyboardView(
         val btn = ImageButton(context).apply {
             setImageResource(R.drawable.ic_enter)
             setColorFilter(Color.WHITE)
-            background = createKeyDrawable(accentColor, 0x80FFFFFF.toInt(), 6f)
+            background = createKeyDrawable(accentColor, 0x80FFFFFF.toInt(), 8f)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
+
+            var downX = 0f
+            var downY = 0f
 
             setOnTouchListener { v, event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         v.isPressed = true
+                        downX = event.x
+                        downY = event.y
                         onKeyFeedback?.invoke(KeyFeedbackType.RETURN, v)
                         true
                     }
                     MotionEvent.ACTION_MOVE -> {
-                        val isInside = event.x >= -v.width * 0.4f &&
-                                       event.x <= v.width * 1.4f &&
-                                       event.y >= -v.height * 0.4f &&
-                                       event.y <= v.height * 1.4f
+                        val distance = kotlin.math.hypot(event.x - downX, event.y - downY)
+                        val minX = -v.width * 0.45f
+                        val maxX = if (isRightEdge) 1000f else v.width * 1.45f
+                        val maxY = if (isBottomRow) v.height * 1.75f else v.height * 1.45f
+                        val minY = -v.height * 0.45f
+                        val isInside = (distance <= dpToPx(14f)) || (event.x in minX..maxX && event.y in minY..maxY)
                         if (!isInside && v.isPressed) {
                             v.isPressed = false
                         }
@@ -1279,7 +1668,7 @@ class KeyboardView(
         return btn
     }
 
-    private fun createScanButton(weight: Float): View {
+    private fun createScanButton(weight: Float, isBottomRow: Boolean = true): View {
         val accentColor = if (isDarkMode) {
             ContextCompat.getColor(context, R.color.heliboard_accent)
         } else {
@@ -1289,23 +1678,27 @@ class KeyboardView(
         val btn = ImageButton(context).apply {
             setImageResource(R.drawable.ic_scan)
             setColorFilter(Color.WHITE)
-            background = createKeyDrawable(accentColor, 0x80FFFFFF.toInt(), 6f)
+            background = createKeyDrawable(accentColor, 0x80FFFFFF.toInt(), 8f)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             setPadding(0, 0, 0, 0)
             contentDescription = "Buka Kamera Scan"
+
+            var downX = 0f
+            var downY = 0f
 
             setOnTouchListener { v, event ->
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {
                         v.isPressed = true
+                        downX = event.x
+                        downY = event.y
                         onKeyFeedback?.invoke(KeyFeedbackType.ACTION, v)
                         true
                     }
                     MotionEvent.ACTION_MOVE -> {
-                        val isInside = event.x >= -v.width * 0.4f &&
-                                       event.x <= v.width * 1.4f &&
-                                       event.y >= -v.height * 0.4f &&
-                                       event.y <= v.height * 1.4f
+                        val distance = kotlin.math.hypot(event.x - downX, event.y - downY)
+                        val maxY = if (isBottomRow) v.height * 1.75f else v.height * 1.45f
+                        val isInside = (distance <= dpToPx(14f)) || (event.x >= -v.width * 0.45f && event.x <= v.width * 1.45f && event.y >= -v.height * 0.45f && event.y <= maxY)
                         if (!isInside && v.isPressed) {
                             v.isPressed = false
                         }

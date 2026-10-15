@@ -13,7 +13,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [2/3] Mengaktifkan One Keyboard di sistem secara otomatis (Bypass)...
-adb shell ime enable com.raditzz.onekeyboard/com.example.barcodekeyboard.service.BarcodeKeyboardService
+adb shell ime enable com.raditzz.onekeyboard/com. example.barcodekeyboard.service.BarcodeKeyboardService
 
 echo.
 echo [3/3] Menjadikan One Keyboard sebagai keyboard utama...

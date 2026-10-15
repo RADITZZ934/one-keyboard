@@ -60,6 +60,9 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         } else if (key == KeyboardPreferences.KEY_KEYBOARD_SCALE) {
             keyboardView?.applyKeyboardScale()
             Log.d(TAG, "Keyboard scale changed via settings")
+        } else if (key == KeyboardPreferences.KEY_LONG_PRESS_SYMBOLS) {
+            keyboardView?.renderKeyboard()
+            Log.d(TAG, "Long press symbols preference changed")
         }
     }
 
@@ -104,13 +107,15 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
                     KeyboardView.KeyFeedbackType.SPACE,
                     KeyboardView.KeyFeedbackType.RETURN -> vibrationHelper.vibrateKeyAction(targetView)
                     KeyboardView.KeyFeedbackType.DELETE -> vibrationHelper.vibrateKeyTap(targetView)
+                    KeyboardView.KeyFeedbackType.REPEAT_DELETE -> vibrationHelper.vibrateRepeatKey(targetView)
                 }
             }
             if (preferences.isSoundEnabled) {
                 when (type) {
                     KeyboardView.KeyFeedbackType.STANDARD -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_STANDARD)
                     KeyboardView.KeyFeedbackType.SPACE -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_SPACEBAR)
-                    KeyboardView.KeyFeedbackType.DELETE -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_DELETE)
+                    KeyboardView.KeyFeedbackType.DELETE,
+                    KeyboardView.KeyFeedbackType.REPEAT_DELETE -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_DELETE)
                     KeyboardView.KeyFeedbackType.RETURN -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_RETURN)
                     KeyboardView.KeyFeedbackType.ACTION -> beepSoundManager.playKeyClick(android.media.AudioManager.FX_KEYPRESS_STANDARD)
                 }
@@ -120,18 +125,40 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         // 2. Essential Keyboard Typing Callbacks (Committed on ACTION_UP)
         view.onKeyTyped = { char ->
             inputTextHandler.commitChar(currentInputConnection, char)
+            if (char == " " || char == "." || char == "?" || char == "!") {
+                checkAndUpdateAutoCapitalization()
+            }
         }
 
         view.onSpaceClicked = {
             inputTextHandler.sendSpace(currentInputConnection)
+            checkAndUpdateAutoCapitalization()
+        }
+
+        view.onDoubleSpaceClicked = {
+            val converted = inputTextHandler.handleDoubleSpacePeriod(currentInputConnection)
+            if (converted && preferences.isAutoCapitalizationEnabled) {
+                keyboardView?.updateShiftState(KeyboardView.ShiftState.ONCE)
+            } else {
+                checkAndUpdateAutoCapitalization()
+            }
         }
 
         view.onBackspaceClicked = {
             inputTextHandler.sendBackspace(currentInputConnection)
+            checkAndUpdateAutoCapitalization()
+        }
+
+        view.onDeleteWordClicked = {
+            inputTextHandler.deletePreviousWord(currentInputConnection)
+            checkAndUpdateAutoCapitalization()
         }
 
         view.onEnterClicked = {
             inputTextHandler.sendEnter(currentInputConnection)
+            if (preferences.isAutoCapitalizationEnabled) {
+                keyboardView?.updateShiftState(KeyboardView.ShiftState.ONCE)
+            }
         }
 
         view.onCursorLeftClicked = {
@@ -175,6 +202,10 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
 
         // 3. Navigation Shortcuts
         view.onSettingsClicked = {
+            openSettingsActivity()
+        }
+
+        view.onKeyboardSizeClicked = {
             openSettingsActivity()
         }
 
@@ -272,9 +303,34 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         clipboardHistoryManager.captureCurrentClipboard(this)
         keyboardView?.refreshClipboardList()
 
+        // Intelligent Auto-Capitalization (Gboard style)
+        checkAndUpdateAutoCapitalization(info)
+
         // If scanner was previously toggled open by user, restart camera
         if (keyboardView?.isScannerOpen == true) {
             checkPermissionAndStartCamera()
+        }
+    }
+
+    override fun onUpdateSelection(
+        oldSelStart: Int, oldSelEnd: Int,
+        newSelStart: Int, newSelEnd: Int,
+        candidatesStart: Int, candidatesEnd: Int
+    ) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        checkAndUpdateAutoCapitalization()
+    }
+
+    private fun checkAndUpdateAutoCapitalization(info: EditorInfo? = currentInputEditorInfo) {
+        if (!preferences.isAutoCapitalizationEnabled) return
+        val kv = keyboardView ?: return
+        if (kv.currentMode != KeyboardView.KeyboardMode.ALPHABET) return
+        if (kv.shiftState == KeyboardView.ShiftState.CAPS_LOCK) return
+
+        val shouldCap = inputTextHandler.shouldAutoCapitalize(currentInputConnection, info)
+        val targetState = if (shouldCap) KeyboardView.ShiftState.ONCE else KeyboardView.ShiftState.OFF
+        if (kv.shiftState != targetState) {
+            kv.updateShiftState(targetState)
         }
     }
 
