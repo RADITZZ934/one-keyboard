@@ -26,11 +26,33 @@
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="pref_auto_enter"
             android:summary="@string/pref_auto_enter_summary"
             android:title="@string/pref_auto_enter_title"
             app:iconSpaceReserved="false" />
+
+        <ListPreference
+            android:defaultValue="medium"
+            android:dialogTitle="@string/pref_scan_sensitivity_title"
+            android:entries="@array/pref_scan_sensitivity_entries"
+            android:entryValues="@array/pref_scan_sensitivity_values"
+            android:key="pref_scan_sensitivity"
+            android:summary="@string/pref_scan_sensitivity_summary"
+            android:title="@string/pref_scan_sensitivity_title"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            android:defaultValue="3500"
+            android:dialogTitle="@string/pref_scan_debounce_title"
+            android:entries="@array/pref_scan_debounce_entries"
+            android:entryValues="@array/pref_scan_debounce_values"
+            android:key="pref_scan_debounce_delay"
+            android:summary="@string/pref_scan_debounce_summary"
+            android:title="@string/pref_scan_debounce_title"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
 
         <SwitchPreferenceCompat
             android:defaultValue="true"

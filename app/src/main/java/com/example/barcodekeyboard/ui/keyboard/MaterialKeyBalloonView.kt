@@ -126,8 +126,8 @@ class MaterialKeyBalloonView @JvmOverloads constructor(
         val bT = headY - minY
         val bB = headY + headH - minY
 
-        val headRadius = dpToPx(14f)
-        val keyRadius = dpToPx(8f)
+        val headRadius = dpToPx(16f)
+        val keyRadius = dpToPx(13f)
         val transitionH = (kT - bB).coerceAtLeast(dpToPx(4f))
 
         balloonPath.reset()
@@ -184,17 +184,17 @@ class MaterialKeyBalloonView @JvmOverloads constructor(
 
         // Setup colors & typography
         if (isDarkMode) {
-            val surfaceColor = Color.parseColor("#343A46") // Material 3 Surface Container High
+            val surfaceColor = Color.parseColor("#363A42") // Material 3 Surface Container High Dark
             fillPaint.color = surfaceColor
             shadowPaint.color = surfaceColor
-            shadowPaint.setShadowLayer(dpToPx(8f), 0f, dpToPx(3f), Color.argb(130, 0, 0, 0))
-            textPaint.color = Color.WHITE
+            shadowPaint.setShadowLayer(dpToPx(10f), 0f, dpToPx(4f), Color.argb(140, 0, 0, 0))
+            textPaint.color = Color.parseColor("#F1F3F5")
         } else {
-            val surfaceColor = Color.parseColor("#E6EBF4") // Material 3 Surface Container High Light
+            val surfaceColor = Color.parseColor("#FFFFFF") // Material 3 Surface High Light
             fillPaint.color = surfaceColor
             shadowPaint.color = surfaceColor
-            shadowPaint.setShadowLayer(dpToPx(7f), 0f, dpToPx(2.5f), Color.argb(60, 0, 0, 0))
-            textPaint.color = Color.parseColor("#0F172A")
+            shadowPaint.setShadowLayer(dpToPx(8f), 0f, dpToPx(3f), Color.argb(70, 0, 0, 0))
+            textPaint.color = Color.parseColor("#1A1C1E")
         }
 
         textPaint.textSize = spToPx(26f * fontScale.coerceIn(0.85f, 1.25f))

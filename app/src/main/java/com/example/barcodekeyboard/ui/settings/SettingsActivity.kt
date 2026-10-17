@@ -64,6 +64,10 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var switchScannerSound: SwitchCompat
     private lateinit var switchScannerVibrate: SwitchCompat
     private lateinit var switchScannerAutoEnter: SwitchCompat
+    private lateinit var rowScanSensitivity: View
+    private lateinit var tvScanSensitivitySummary: TextView
+    private lateinit var rowScanDebounce: View
+    private lateinit var tvScanDebounceSummary: TextView
     private lateinit var rowPrefixSuffix: View
     private lateinit var tvPrefixSuffixSummary: TextView
     private lateinit var rowBottomPadding: View
@@ -136,6 +140,10 @@ class SettingsActivity : AppCompatActivity() {
         switchScannerSound = findViewById(R.id.switchScannerSound)
         switchScannerVibrate = findViewById(R.id.switchScannerVibrate)
         switchScannerAutoEnter = findViewById(R.id.switchScannerAutoEnter)
+        rowScanSensitivity = findViewById(R.id.rowScanSensitivity)
+        tvScanSensitivitySummary = findViewById(R.id.tvScanSensitivitySummary)
+        rowScanDebounce = findViewById(R.id.rowScanDebounce)
+        tvScanDebounceSummary = findViewById(R.id.tvScanDebounceSummary)
         rowPrefixSuffix = findViewById(R.id.rowPrefixSuffix)
         tvPrefixSuffixSummary = findViewById(R.id.tvPrefixSuffixSummary)
         rowBottomPadding = findViewById(R.id.rowBottomPadding)
@@ -365,6 +373,16 @@ class SettingsActivity : AppCompatActivity() {
                 .apply()
         }
 
+        updateScanSensitivitySummary()
+        rowScanSensitivity.setOnClickListener {
+            showScanSensitivityDialog()
+        }
+
+        updateScanDebounceSummary()
+        rowScanDebounce.setOnClickListener {
+            showScanDebounceDialog()
+        }
+
         updatePrefixSuffixSummary()
 
         rowPrefixSuffix.setOnClickListener {
@@ -376,6 +394,74 @@ class SettingsActivity : AppCompatActivity() {
         rowBottomPadding.setOnClickListener {
             showBottomPaddingDialog()
         }
+    }
+
+    private fun updateScanSensitivitySummary() {
+        val summary = when (preferences.scanSensitivity) {
+            KeyboardPreferences.SENSITIVITY_HIGH -> "Tinggi (Instan - 1 Frame)"
+            KeyboardPreferences.SENSITIVITY_LOW -> "Rendah (Sangat Stabil - 3 Frame)"
+            else -> "Sedang (Seimbang - 2 Frame, Rekomendasi)"
+        }
+        tvScanSensitivitySummary.text = summary
+    }
+
+    private fun showScanSensitivityDialog() {
+        val options = arrayOf(
+            "Tinggi (Instan - 1 Frame)",
+            "Sedang (Seimbang - 2 Frame, Rekomendasi)",
+            "Rendah (Sangat Stabil - 3 Frame)"
+        )
+        val values = arrayOf(
+            KeyboardPreferences.SENSITIVITY_HIGH,
+            KeyboardPreferences.SENSITIVITY_MEDIUM,
+            KeyboardPreferences.SENSITIVITY_LOW
+        )
+        val currentVal = preferences.scanSensitivity
+        val selectedIndex = values.indexOf(currentVal).let { if (it >= 0) it else 1 }
+
+        AlertDialog.Builder(this)
+            .setTitle("Sensitivitas Scanner")
+            .setSingleChoiceItems(options, selectedIndex) { dialog, which ->
+                preferences.setScanSensitivity(values[which])
+                updateScanSensitivitySummary()
+                Toast.makeText(this, "Sensitivitas scanner diperbarui", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun updateScanDebounceSummary() {
+        val summary = when (preferences.scanDebounceDelayMs) {
+            1500L -> "1.5 Detik (Cepat)"
+            2500L -> "2.5 Detik"
+            5000L -> "5.0 Detik (Sangat Aman)"
+            else -> "3.5 Detik (Rekomendasi - Cegah Dobel)"
+        }
+        tvScanDebounceSummary.text = summary
+    }
+
+    private fun showScanDebounceDialog() {
+        val options = arrayOf(
+            "1.5 Detik (Cepat)",
+            "2.5 Detik",
+            "3.5 Detik (Rekomendasi - Cegah Dobel)",
+            "5.0 Detik (Sangat Aman)"
+        )
+        val values = arrayOf(1500L, 2500L, 3500L, 5000L)
+        val currentVal = preferences.scanDebounceDelayMs
+        val selectedIndex = values.indexOf(currentVal).let { if (it >= 0) it else 2 }
+
+        AlertDialog.Builder(this)
+            .setTitle("Jeda Anti-Duplikat (Cooldown)")
+            .setSingleChoiceItems(options, selectedIndex) { dialog, which ->
+                preferences.setScanDebounceDelayMs(values[which])
+                updateScanDebounceSummary()
+                Toast.makeText(this, "Jeda anti-duplikat diperbarui", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
     }
 
     private fun updateBottomPaddingSummary() {

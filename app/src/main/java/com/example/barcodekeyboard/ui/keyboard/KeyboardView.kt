@@ -1008,9 +1008,15 @@ class KeyboardView(
         }
 
         val pressedColor = if (isDarkMode) {
-            Color.parseColor("#384860")
+            ContextCompat.getColor(context, R.color.heliboard_key_pressed)
         } else {
-            Color.parseColor("#BFDBFE")
+            ContextCompat.getColor(context, R.color.heliboard_key_pressed_light)
+        }
+
+        val strokeColor = if (isDarkMode) {
+            Color.TRANSPARENT
+        } else {
+            ContextCompat.getColor(context, R.color.pixelboard_key_stroke_light)
         }
 
         val textColor = if (isDarkMode) {
@@ -1020,9 +1026,9 @@ class KeyboardView(
         }
 
         val hintColor = if (isDarkMode) {
-            Color.parseColor("#8E9CAE")
+            ContextCompat.getColor(context, R.color.heliboard_text_sub)
         } else {
-            Color.parseColor("#7A8B9E")
+            ContextCompat.getColor(context, R.color.heliboard_text_sub_light)
         }
 
         val prefs = KeyboardPreferences(context)
@@ -1032,8 +1038,9 @@ class KeyboardView(
 
         val mainTv = TextView(context).apply {
             this.text = text
-            textSize = 17f * fontScale
+            textSize = 17.5f * fontScale
             setTextColor(textColor)
+            typeface = android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.NORMAL)
             gravity = Gravity.CENTER
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -1046,20 +1053,21 @@ class KeyboardView(
                 this.text = hint
                 textSize = 9.5f * fontScale
                 setTextColor(hintColor)
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
                 gravity = Gravity.CENTER
                 layoutParams = FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
                     gravity = Gravity.TOP or Gravity.END
-                    topMargin = dpToPx(2.5f).toInt()
+                    topMargin = dpToPx(3f).toInt()
                     rightMargin = dpToPx(4.5f).toInt()
                 }
             }
         } else null
 
         val cell = KeyCell(context, mainTv, hintTv).apply {
-            background = createKeyDrawable(normalColor, pressedColor, 8f)
+            background = createKeyDrawable(normalColor, pressedColor, 13f, strokeColor, if (isDarkMode) 0f else 1f)
             addView(mainTv)
             if (hintTv != null) addView(hintTv)
 
@@ -1205,10 +1213,16 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_key_pressed_light)
         }
 
-        val textColor = if (isDarkMode) {
-            Color.parseColor("#8E9CAE")
+        val strokeColor = if (isDarkMode) {
+            Color.TRANSPARENT
         } else {
-            Color.parseColor("#7A8B9E")
+            ContextCompat.getColor(context, R.color.pixelboard_key_stroke_light)
+        }
+
+        val textColor = if (isDarkMode) {
+            Color.parseColor("#8E939A")
+        } else {
+            Color.parseColor("#70757A")
         }
 
         val prefs = KeyboardPreferences(context)
@@ -1220,7 +1234,11 @@ class KeyboardView(
             isAllCaps = false
             textSize = 12f * fontScale
             setTextColor(textColor)
-            background = createKeyDrawable(normalColor, pressedColor, 8f)
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                letterSpacing = 0.04f
+            }
+            background = createKeyDrawable(normalColor, pressedColor, 16f, strokeColor, if (isDarkMode) 0f else 1f)
             setPadding(0, 0, 0, 0)
             gravity = Gravity.CENTER
 
@@ -1321,9 +1339,9 @@ class KeyboardView(
         }
 
         val textColor = if (isDarkMode) {
-            ContextCompat.getColor(context, R.color.heliboard_text_sub)
+            ContextCompat.getColor(context, R.color.heliboard_text)
         } else {
-            ContextCompat.getColor(context, R.color.heliboard_text_sub_light)
+            ContextCompat.getColor(context, R.color.heliboard_text_light)
         }
 
         val scale = KeyboardPreferences(context).keyboardScalePercent / 100f
@@ -1332,9 +1350,10 @@ class KeyboardView(
         val btn = Button(context).apply {
             this.text = text
             isAllCaps = false
-            textSize = 13f * fontScale
+            textSize = 13.5f * fontScale
             setTextColor(textColor)
-            background = createKeyDrawable(normalColor, pressedColor, 8f)
+            typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.NORMAL)
+            background = createKeyDrawable(normalColor, pressedColor, 14f)
             setPadding(0, 0, 0, 0)
             gravity = Gravity.CENTER
 
@@ -1400,7 +1419,7 @@ class KeyboardView(
         }
 
         val btn = ImageButton(context).apply {
-            background = createKeyDrawable(normalColor, pressedColor, 8f)
+            background = createKeyDrawable(normalColor, pressedColor, 14f)
             setPadding(0, 0, 0, 0)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
 
@@ -1479,18 +1498,18 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_key_pressed_light)
         }
 
-        val subTextColor = if (isDarkMode) {
-            ContextCompat.getColor(context, R.color.heliboard_text_sub)
+        val iconColor = if (isDarkMode) {
+            ContextCompat.getColor(context, R.color.heliboard_text)
         } else {
-            ContextCompat.getColor(context, R.color.heliboard_text_sub_light)
+            ContextCompat.getColor(context, R.color.heliboard_text_light)
         }
 
         val prefs = KeyboardPreferences(context)
 
         val btn = ImageButton(context).apply {
             setImageResource(R.drawable.ic_backspace)
-            setColorFilter(subTextColor)
-            background = createKeyDrawable(normalColor, pressedColor, 8f)
+            setColorFilter(iconColor)
+            background = createKeyDrawable(normalColor, pressedColor, 14f)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
 
             var downX = 0f
@@ -1582,15 +1601,27 @@ class KeyboardView(
         isBottomRow: Boolean = true
     ): View {
         val accentColor = if (isDarkMode) {
-            ContextCompat.getColor(context, R.color.heliboard_accent)
+            ContextCompat.getColor(context, R.color.pixelboard_enter_bg_dark)
         } else {
-            ContextCompat.getColor(context, R.color.heliboard_accent_light)
+            ContextCompat.getColor(context, R.color.pixelboard_enter_bg_light)
+        }
+
+        val pressedColor = if (isDarkMode) {
+            Color.parseColor("#7CACF8")
+        } else {
+            Color.parseColor("#0842A0")
+        }
+
+        val iconColor = if (isDarkMode) {
+            ContextCompat.getColor(context, R.color.pixelboard_enter_text_dark)
+        } else {
+            ContextCompat.getColor(context, R.color.pixelboard_enter_text_light)
         }
 
         val btn = ImageButton(context).apply {
             setImageResource(R.drawable.ic_enter)
-            setColorFilter(Color.WHITE)
-            background = createKeyDrawable(accentColor, 0x80FFFFFF.toInt(), 8f)
+            setColorFilter(iconColor)
+            background = createKeyDrawable(accentColor, pressedColor, 18f)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
 
             var downX = 0f
@@ -1649,10 +1680,16 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_accent_light)
         }
 
+        val pressedColor = if (isDarkMode) {
+            Color.parseColor("#1557B0")
+        } else {
+            Color.parseColor("#0842A0")
+        }
+
         val btn = ImageButton(context).apply {
             setImageResource(R.drawable.ic_scan)
             setColorFilter(Color.WHITE)
-            background = createKeyDrawable(accentColor, 0x80FFFFFF.toInt(), 8f)
+            background = createKeyDrawable(accentColor, pressedColor, 18f)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             setPadding(0, 0, 0, 0)
             contentDescription = "Buka Kamera Scan"
@@ -1709,13 +1746,22 @@ class KeyboardView(
         return v
     }
 
-    private fun createKeyDrawable(normalColor: Int, pressedColor: Int, radiusDp: Float): Drawable {
+    private fun createKeyDrawable(
+        normalColor: Int,
+        pressedColor: Int,
+        radiusDp: Float,
+        strokeColor: Int = Color.TRANSPARENT,
+        strokeWidthDp: Float = 0f
+    ): Drawable {
         val radiusPx = dpToPx(radiusDp)
 
         val normalDrawable = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             setColor(normalColor)
             cornerRadius = radiusPx
+            if (strokeWidthDp > 0f && strokeColor != Color.TRANSPARENT) {
+                setStroke(dpToPx(strokeWidthDp).toInt(), strokeColor)
+            }
         }
 
         val maskDrawable = GradientDrawable().apply {

@@ -370,6 +370,7 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
 
     private fun startCameraScanning() {
         val analyzer = BarcodeAnalyzer(
+            preferences = preferences,
             onBarcodeScanned = { scanResult ->
                 cancelScanTimeout()
 

@@ -774,6 +774,106 @@
                     android:layout_marginBottom="12dp"
                     android:background="@color/bento_cream_border" />
 
+                <!-- Sensitivitas Scanner -->
+                <LinearLayout
+                    android:id="@+id/rowScanSensitivity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="Sensitivitas Scanner"
+                            android:textColor="@color/bento_text_primary"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tvScanSensitivitySummary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Sedang (Seimbang - 2 Frame, Rekomendasi)"
+                            android:textColor="@color/bento_text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_arrow_forward"
+                        app:tint="@color/bento_text_secondary" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@color/bento_cream_border" />
+
+                <!-- Jeda Anti-Duplikat (Cooldown) -->
+                <LinearLayout
+                    android:id="@+id/rowScanDebounce"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-bold"
+                            android:text="Jeda Anti-Duplikat (Cooldown)"
+                            android:textColor="@color/bento_text_primary"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tvScanDebounceSummary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="3.5 Detik (Rekomendasi - Cegah Dobel)"
+                            android:textColor="@color/bento_text_secondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_arrow_forward"
+                        app:tint="@color/bento_text_secondary" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@color/bento_cream_border" />
+
                 <!-- 4. Prefix & Suffix Config -->
                 <LinearLayout
                     android:id="@+id/rowPrefixSuffix"

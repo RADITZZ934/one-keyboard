@@ -19,6 +19,15 @@ class KeyboardPreferences(context: Context) {
         const val THEME_LIGHT = "light"
 
         const val KEY_AUTO_ENTER = "pref_auto_enter"
+        const val KEY_SCAN_SENSITIVITY = "pref_scan_sensitivity"
+        const val SENSITIVITY_HIGH = "high"
+        const val SENSITIVITY_MEDIUM = "medium"
+        const val SENSITIVITY_LOW = "low"
+
+        const val KEY_SCAN_DEBOUNCE = "pref_scan_debounce_delay"
+        const val DEFAULT_DEBOUNCE_DELAY_MS = 3500L
+        const val DEFAULT_MIN_SCAN_INTERVAL_MS = 1200L
+
         const val KEY_VIBRATE = "pref_vibrate"
         const val KEY_SOUND = "pref_sound"
         const val KEY_PREFIX = "pref_prefix"
@@ -60,7 +69,28 @@ class KeyboardPreferences(context: Context) {
     }
 
     val isAutoEnterEnabled: Boolean
-        get() = prefs.getBoolean(KEY_AUTO_ENTER, false)
+        get() = prefs.getBoolean(KEY_AUTO_ENTER, true)
+
+    val scanSensitivity: String
+        get() = prefs.getString(KEY_SCAN_SENSITIVITY, SENSITIVITY_MEDIUM) ?: SENSITIVITY_MEDIUM
+
+    fun setScanSensitivity(value: String) {
+        prefs.edit().putString(KEY_SCAN_SENSITIVITY, value).apply()
+    }
+
+    val scanDebounceDelayMs: Long
+        get() = prefs.getString(KEY_SCAN_DEBOUNCE, "3500")?.toLongOrNull() ?: DEFAULT_DEBOUNCE_DELAY_MS
+
+    fun setScanDebounceDelayMs(value: Long) {
+        prefs.edit().putString(KEY_SCAN_DEBOUNCE, value.toString()).apply()
+    }
+
+    val requiredConsecutiveFrames: Int
+        get() = when (scanSensitivity) {
+            SENSITIVITY_HIGH -> 1
+            SENSITIVITY_LOW -> 3
+            else -> 2 // SENSITIVITY_MEDIUM (Default)
+        }
 
     val isAutoCapitalizationEnabled: Boolean
         get() = prefs.getBoolean(KEY_AUTO_CAPITALIZATION, true)

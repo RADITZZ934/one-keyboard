@@ -40,6 +40,45 @@
     <string name="pref_prefix_summary">Teks yang ditambahkan sebelum hasil scan</string>
     <string name="pref_suffix_title">Akhiran (Suffix)</string>
     <string name="pref_suffix_summary">Teks yang ditambahkan setelah hasil scan</string>
+
+    <string name="pref_scan_sensitivity_title">Sensitivitas Scanner</string>
+    <string name="pref_scan_sensitivity_summary">Atur sensitivitas deteksi kamera untuk mencegah salah atau dobel scan</string>
+    <string name="scan_sensitivity_high">Tinggi (Instan - 1 Frame)</string>
+    <string name="scan_sensitivity_medium">Sedang (Seimbang - 2 Frame, Rekomendasi)</string>
+    <string name="scan_sensitivity_low">Rendah (Sangat Stabil - 3 Frame)</string>
+
+    <string-array name="pref_scan_sensitivity_entries">
+        <item>@string/scan_sensitivity_high</item>
+        <item>@string/scan_sensitivity_medium</item>
+        <item>@string/scan_sensitivity_low</item>
+    </string-array>
+
+    <string-array name="pref_scan_sensitivity_values">
+        <item>high</item>
+        <item>medium</item>
+        <item>low</item>
+    </string-array>
+
+    <string name="pref_scan_debounce_title">Jeda Anti-Duplikat (Cooldown)</string>
+    <string name="pref_scan_debounce_summary">Waktu tunggu sebelum barcode yang sama dapat dipindai ulang</string>
+    <string name="scan_debounce_1500">1.5 Detik (Cepat)</string>
+    <string name="scan_debounce_2500">2.5 Detik</string>
+    <string name="scan_debounce_3500">3.5 Detik (Rekomendasi - Cegah Dobel)</string>
+    <string name="scan_debounce_5000">5.0 Detik (Sangat Aman)</string>
+
+    <string-array name="pref_scan_debounce_entries">
+        <item>@string/scan_debounce_1500</item>
+        <item>@string/scan_debounce_2500</item>
+        <item>@string/scan_debounce_3500</item>
+        <item>@string/scan_debounce_5000</item>
+    </string-array>
+
+    <string-array name="pref_scan_debounce_values">
+        <item>1500</item>
+        <item>2500</item>
+        <item>3500</item>
+        <item>5000</item>
+    </string-array>
     
     <!-- Test Area -->
     <string name="test_area_hint">Uji coba ketuk di sini lalu arahkan ke barcode/QR...</string>
