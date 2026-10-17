@@ -9,8 +9,8 @@ android {
         applicationId "com.raditzz.onekeyboard"
         minSdkVersion 24
         targetSdkVersion 36
-        versionCode 8
-        versionName "1.1.1"
+        versionCode 9
+        versionName "2.0.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -91,4 +91,6 @@ dependencies {
 
     // ML Kit Barcode Scanning
     implementation 'com.google.mlkit:barcode-scanning:17.0.0'
+
+    testImplementation 'junit:junit:4.13.2'
 }

@@ -39,18 +39,12 @@ class BarcodeAnalyzer(
 
     var onBarcodeTracking: ((Boolean) -> Unit)? = null
 
-    // Anti-duplicate LRU cache: barcode text -> timestamp
-    private val recentScans = LinkedHashMap<String, Long>()
-
-    // Global timestamp for last scan of ANY barcode
-    private var lastAnyScanTime: Long = 0L
-
-    // Temporary pause after successful scan to let animations finish smoothly without re-triggering
-    private var pauseUntilTime: Long = 0L
-
-    // Multi-frame candidate stability tracking for sensitivity throttling
-    private var candidateText: String = ""
-    private var candidateCount: Int = 0
+    val scanFilter = BarcodeScanFilter(
+        debounceDelayMs = preferences?.scanDebounceDelayMs ?: BarcodeScanFilter.DEFAULT_DEBOUNCE_INTERVAL_SAME_CODE_MS,
+        minIntervalBetweenScansMs = BarcodeScanFilter.MIN_INTERVAL_BETWEEN_SCANS_MS,
+        requiredFrames = preferences?.requiredConsecutiveFrames ?: BarcodeScanFilter.DEFAULT_REQUIRED_FRAMES,
+        pauseDurationMs = BarcodeScanFilter.DEFAULT_SUCCESS_PAUSE_DURATION_MS
+    )
 
     private var lastFailureTime: Long = 0L
 
@@ -66,21 +60,15 @@ class BarcodeAnalyzer(
     /**
      * Pauses scanning processing for [durationMs] milliseconds.
      */
-    fun pauseScanning(durationMs: Long = SUCCESS_PAUSE_DURATION_MS) {
-        pauseUntilTime = System.currentTimeMillis() + durationMs
-        candidateText = ""
-        candidateCount = 0
+    fun pauseScanning(durationMs: Long = BarcodeScanFilter.DEFAULT_SUCCESS_PAUSE_DURATION_MS) {
+        scanFilter.pause(System.currentTimeMillis(), durationMs)
     }
 
     /**
      * Resets internal debounce and candidate state (e.g. when camera is reopened or mode switches).
      */
     fun resetState() {
-        recentScans.clear()
-        lastAnyScanTime = 0L
-        pauseUntilTime = 0L
-        candidateText = ""
-        candidateCount = 0
+        scanFilter.resetState()
     }
 
     @ExperimentalGetImage
@@ -88,7 +76,7 @@ class BarcodeAnalyzer(
         val currentTime = System.currentTimeMillis()
 
         // Check if analyzer is currently in cooldown/pause after a scan
-        if (currentTime < pauseUntilTime) {
+        if (scanFilter.isPaused(currentTime)) {
             imageProxy.close()
             return
         }
@@ -109,8 +97,7 @@ class BarcodeAnalyzer(
                 if (barcodes.isEmpty()) {
                     onBarcodeTracking?.invoke(false)
                     // Reset candidate if nothing is in frame
-                    candidateText = ""
-                    candidateCount = 0
+                    scanFilter.processCandidate("", now)
                     return@addOnSuccessListener
                 }
 
@@ -135,66 +122,38 @@ class BarcodeAnalyzer(
                     barcodes
                 }
 
-                val debounceDelay = preferences?.scanDebounceDelayMs ?: DEFAULT_DEBOUNCE_INTERVAL_SAME_CODE_MS
-                val requiredFrames = preferences?.requiredConsecutiveFrames ?: 2
+                scanFilter.debounceDelayMs = preferences?.scanDebounceDelayMs ?: BarcodeScanFilter.DEFAULT_DEBOUNCE_INTERVAL_SAME_CODE_MS
+                scanFilter.requiredFrames = preferences?.requiredConsecutiveFrames ?: BarcodeScanFilter.DEFAULT_REQUIRED_FRAMES
 
-                for (barcode in sortedBarcodes) {
+                barcodeLoop@ for (barcode in sortedBarcodes) {
                     val rawValue = barcode.rawValue
                     if (!rawValue.isNullOrBlank()) {
-                        // 1. Check duplicate scan for this identical barcode
-                        val lastScannedTime = recentScans[rawValue] ?: 0L
-                        if (now - lastScannedTime < debounceDelay) {
-                            hasValidBarcode = true
-                            continue
-                        }
-
-                        // 2. Check minimum interval between ANY scans
-                        if (now - lastAnyScanTime < MIN_INTERVAL_BETWEEN_SCANS_MS) {
-                            hasValidBarcode = true
-                            continue
-                        }
-
-                        // 3. Multi-frame candidate stability (Sensitivity Throttling)
-                        if (requiredFrames > 1) {
-                            if (rawValue == candidateText) {
-                                candidateCount++
-                            } else {
-                                candidateText = rawValue
-                                candidateCount = 1
-                            }
-
-                            if (candidateCount < requiredFrames) {
-                                // Awaiting stable confirmation frame, do not commit yet
+                        when (val result = scanFilter.processCandidate(rawValue, now)) {
+                            is BarcodeScanFilter.FilterResult.Confirmed -> {
                                 hasValidBarcode = true
-                                break
+                                val scanResult = ScanResult(
+                                    text = result.text,
+                                    format = barcode.format,
+                                    timestamp = result.timestamp
+                                )
+                                Log.d(TAG, "Barcode confirmed: ${result.text} (Format: ${barcode.format})")
+                                onBarcodeScanned(scanResult)
+                                break@barcodeLoop
+                            }
+                            is BarcodeScanFilter.FilterResult.AwaitingFrames -> {
+                                hasValidBarcode = true
+                                break@barcodeLoop
+                            }
+                            is BarcodeScanFilter.FilterResult.DuplicateDebounced,
+                            is BarcodeScanFilter.FilterResult.MinIntervalThrottled -> {
+                                hasValidBarcode = true
+                                continue@barcodeLoop
+                            }
+                            is BarcodeScanFilter.FilterResult.InPauseCooldown -> {
+                                hasValidBarcode = true
+                                break@barcodeLoop
                             }
                         }
-
-                        // 4. Barcode is verified and confirmed!
-                        candidateText = ""
-                        candidateCount = 0
-
-                        recentScans[rawValue] = now
-                        if (recentScans.size > MAX_RECENT_CACHE_SIZE) {
-                            val oldestKey = recentScans.keys.firstOrNull()
-                            if (oldestKey != null) {
-                                recentScans.remove(oldestKey)
-                            }
-                        }
-                        lastAnyScanTime = now
-
-                        // Lock analyzer temporarily during visual/haptic feedback
-                        pauseUntilTime = now + SUCCESS_PAUSE_DURATION_MS
-                        hasValidBarcode = true
-
-                        val scanResult = ScanResult(
-                            text = rawValue,
-                            format = barcode.format,
-                            timestamp = now
-                        )
-                        Log.d(TAG, "Barcode confirmed: $rawValue (Format: ${barcode.format})")
-                        onBarcodeScanned(scanResult)
-                        break
                     }
                 }
 
