@@ -48,6 +48,7 @@ class KeyboardPreferences(context: Context) {
         const val KEY_SPACEBAR_CURSOR = "pref_spacebar_cursor"
         const val KEY_SWIPE_DELETE = "pref_swipe_delete"
         const val KEY_LONG_PRESS_SYMBOLS = "pref_long_press_symbols"
+        const val KEY_SHOW_NUMBER_ROW = "pref_show_number_row"
     }
 
     val themeMode: String
@@ -106,6 +107,9 @@ class KeyboardPreferences(context: Context) {
 
     val isLongPressSymbolsEnabled: Boolean
         get() = prefs.getBoolean(KEY_LONG_PRESS_SYMBOLS, true)
+
+    val isNumberRowEnabled: Boolean
+        get() = prefs.getBoolean(KEY_SHOW_NUMBER_ROW, false)
 
     val isVibrationEnabled: Boolean
         get() = prefs.getBoolean(KEY_VIBRATE, true)

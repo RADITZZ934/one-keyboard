@@ -80,6 +80,9 @@
         <item>5000</item>
     </string-array>
     
+    <string name="pref_show_number_row_title">Baris Angka Terpisah (1-0)</string>
+    <string name="pref_show_number_row_summary">Tampilkan baris angka khusus di atas huruf (Gaya Gboard opsional)</string>
+
     <!-- Test Area -->
     <string name="test_area_hint">Uji coba ketuk di sini lalu arahkan ke barcode/QR...</string>
     <string name="test_area_label">Area Uji Coba Langsung</string>

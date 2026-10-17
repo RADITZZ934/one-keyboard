@@ -23,6 +23,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.view.ViewStub
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -72,13 +73,19 @@ class KeyboardView(
     val tvKeyPreviewChar: TextView = rootView.findViewById(R.id.tvKeyPreviewChar)
     val materialKeyBalloonView: MaterialKeyBalloonView = rootView.findViewById(R.id.materialKeyBalloonView)
     val moreKeysPillPopupView: MoreKeysPillPopupView = rootView.findViewById(R.id.moreKeysPillPopupView)
-    val scannerContainer: FrameLayout = rootView.findViewById(R.id.scannerContainer)
-    val previewView: PreviewView = rootView.findViewById(R.id.cameraPreviewView)
-    val scannerOverlayView: ScannerOverlayView = rootView.findViewById(R.id.scannerOverlayView)
-    val btnQuickZoom: TextView = rootView.findViewById(R.id.btnQuickZoom)
-    val btnViewfinderFlash: ImageButton = rootView.findViewById(R.id.btnViewfinderFlash)
-    private val tvStatus: TextView = rootView.findViewById(R.id.tvStatus)
-    private val btnGrantPermission: Button = rootView.findViewById(R.id.btnGrantPermission)
+    val scannerViewStub: ViewStub = rootView.findViewById(R.id.scannerViewStub)
+    var scannerContainer: View? = null
+        private set
+    var previewView: PreviewView? = null
+        private set
+    var scannerOverlayView: ScannerOverlayView? = null
+        private set
+    var btnQuickZoom: TextView? = null
+        private set
+    var btnViewfinderFlash: ImageButton? = null
+        private set
+    private var tvStatus: TextView? = null
+    private var btnGrantPermission: Button? = null
     private val toolbarContainer: LinearLayout = rootView.findViewById(R.id.toolbarContainer)
 
     // Toolbar buttons (FUTO & Bento dual-state action bar)
@@ -188,24 +195,6 @@ class KeyboardView(
         setupClipboard()
         setupWindowInsets()
         applyKeyboardScale()
-        scannerOverlayView.onViewfinderTapped = {
-            onViewfinderTapped?.invoke()
-        }
-        scannerOverlayView.onFocusRequested = { x, y ->
-            onFocusRequested?.invoke(x, y)
-        }
-        scannerOverlayView.onDoubleTapZoom = {
-            onDoubleTapZoom?.invoke()
-        }
-        scannerOverlayView.onPinchZoom = { factor ->
-            onPinchZoom?.invoke(factor)
-        }
-        btnQuickZoom.setOnClickListener {
-            onQuickZoomClicked?.invoke()
-        }
-        btnViewfinderFlash.setOnClickListener {
-            onFlashClicked?.invoke()
-        }
         applyTheme(isDark = true)
     }
 
@@ -242,9 +231,6 @@ class KeyboardView(
             onSettingsClicked?.invoke()
         }
 
-        btnGrantPermission.setOnClickListener {
-            onGrantPermissionClicked?.invoke()
-        }
 
         btnDrawerScan.setOnClickListener {
             toggleToolsDrawer(false)
@@ -368,7 +354,7 @@ class KeyboardView(
         val density = context.resources.displayMetrics.density
 
         val baseNumberHeightDp = 44f
-        val baseRowHeightDp = 46f
+        val baseRowHeightDp = 52f
 
         val numberHeightPx = (baseNumberHeightDp * scale * density).toInt()
         val rowHeightPx = (baseRowHeightDp * scale * density).toInt()
@@ -503,14 +489,52 @@ class KeyboardView(
         onKeyFeedback?.invoke(KeyFeedbackType.ACTION, btnToggleTools)
     }
 
+    fun ensureScannerInflated(): View {
+        if (scannerContainer == null) {
+            val inflated = scannerViewStub.inflate()
+            scannerContainer = inflated
+            previewView = inflated.findViewById(R.id.cameraPreviewView)
+            scannerOverlayView = inflated.findViewById(R.id.scannerOverlayView)
+            btnQuickZoom = inflated.findViewById(R.id.btnQuickZoom)
+            btnViewfinderFlash = inflated.findViewById(R.id.btnViewfinderFlash)
+            tvStatus = inflated.findViewById(R.id.tvStatus)
+            btnGrantPermission = inflated.findViewById(R.id.btnGrantPermission)
+
+            scannerOverlayView?.onViewfinderTapped = {
+                onViewfinderTapped?.invoke()
+            }
+            scannerOverlayView?.onFocusRequested = { x, y ->
+                onFocusRequested?.invoke(x, y)
+            }
+            scannerOverlayView?.onDoubleTapZoom = {
+                onDoubleTapZoom?.invoke()
+            }
+            scannerOverlayView?.onPinchZoom = { factor ->
+                onPinchZoom?.invoke(factor)
+            }
+            btnQuickZoom?.setOnClickListener {
+                onQuickZoomClicked?.invoke()
+            }
+            btnViewfinderFlash?.setOnClickListener {
+                onFlashClicked?.invoke()
+            }
+            btnGrantPermission?.setOnClickListener {
+                onGrantPermissionClicked?.invoke()
+            }
+        }
+        return scannerContainer!!
+    }
+
     fun toggleScanner(forceOpen: Boolean? = null) {
         hideCircleHighlight(0)
-        isScannerOpen = forceOpen ?: !isScannerOpen
-        if (isScannerOpen) {
+        val shouldOpen = forceOpen ?: !isScannerOpen
+        if (shouldOpen) {
+            ensureScannerInflated()
             if (isClipboardOpen) toggleClipboard(false)
             if (isToolsDrawerOpen) toggleToolsDrawer(false)
         }
-        scannerContainer.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
+        isScannerOpen = shouldOpen
+        scannerContainer?.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
         btnFlash.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
 
         updateToolbarIconColors()
@@ -583,89 +607,95 @@ class KeyboardView(
     fun updateFlashIcon(isTorchOn: Boolean) {
         val color = if (isTorchOn) Color.parseColor("#FFD600") else Color.WHITE
         btnFlash.setColorFilter(color)
-        btnViewfinderFlash.setColorFilter(color)
+        btnViewfinderFlash?.setColorFilter(color)
     }
 
     fun updateZoomDisplay(ratio: Float) {
         val formatted = if (ratio >= 1.95f) "2.0x" else if (ratio <= 1.05f) "1.0x" else String.format(java.util.Locale.US, "%.1fx", ratio)
-        btnQuickZoom.text = formatted
-        btnQuickZoom.animate().scaleX(1.15f).scaleY(1.15f).setDuration(100).withEndAction {
-            btnQuickZoom.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+        val zoomBtn = btnQuickZoom ?: return
+        zoomBtn.text = formatted
+        zoomBtn.animate().scaleX(1.15f).scaleY(1.15f).setDuration(100).withEndAction {
+            zoomBtn.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
         }.start()
     }
 
     fun setStatusText(text: String, isAccent: Boolean = false) {
-        tvStatus.text = text
-        tvStatus.setTextColor(if (isAccent) Color.parseColor("#00E5FF") else Color.WHITE)
+        val status = tvStatus ?: return
+        status.text = text
+        status.setTextColor(if (isAccent) Color.parseColor("#00E5FF") else Color.WHITE)
     }
 
     fun notifyFocusResult(success: Boolean) {
-        scannerOverlayView.notifyFocusResult(success)
+        scannerOverlayView?.notifyFocusResult(success)
+        val status = tvStatus ?: return
         if (success) {
-            tvStatus.text = "✓ Fokus tajam • Siap memindai"
-            tvStatus.setTextColor(Color.parseColor("#00E676"))
+            status.text = "✓ Fokus tajam • Siap memindai"
+            status.setTextColor(Color.parseColor("#00E676"))
         } else {
-            tvStatus.text = "Ketuk layar untuk fokus • 2x zoom"
-            tvStatus.setTextColor(Color.WHITE)
+            status.text = "Ketuk layar untuk fokus • 2x zoom"
+            status.setTextColor(Color.WHITE)
         }
-        tvStatus.postDelayed({
+        status.postDelayed({
             if (isScannerOpen) {
-                tvStatus.text = "Ketuk layar untuk fokus • 2x zoom"
-                tvStatus.setTextColor(Color.WHITE)
+                status.text = "Ketuk layar untuk fokus • 2x zoom"
+                status.setTextColor(Color.WHITE)
             }
         }, 1800)
     }
 
     fun setBarcodeTargetLocked(locked: Boolean) {
-        scannerOverlayView.setBarcodeTargetLocked(locked)
+        scannerOverlayView?.setBarcodeTargetLocked(locked)
+        val status = tvStatus ?: return
         if (locked) {
-            tvStatus.text = "🔍 Barcode terdeteksi • Tahan posisi"
-            tvStatus.setTextColor(Color.parseColor("#00E676"))
+            status.text = "🔍 Barcode terdeteksi • Tahan posisi"
+            status.setTextColor(Color.parseColor("#00E676"))
         }
     }
 
     fun showPermissionPrompt(show: Boolean) {
-        btnGrantPermission.visibility = if (show) View.VISIBLE else View.GONE
-        scannerOverlayView.visibility = if (show) View.GONE else View.VISIBLE
+        btnGrantPermission?.visibility = if (show) View.VISIBLE else View.GONE
+        scannerOverlayView?.visibility = if (show) View.GONE else View.VISIBLE
     }
 
     fun showScannedFeedback(text: String) {
-        scannerOverlayView.triggerSuccessAnimation()
-        tvStatus.text = "✓ Berhasil: $text"
-        tvStatus.setTextColor(Color.parseColor("#00E676"))
-        tvStatus.animate()
+        scannerOverlayView?.triggerSuccessAnimation()
+        val status = tvStatus ?: return
+        status.text = "✓ Berhasil: $text"
+        status.setTextColor(Color.parseColor("#00E676"))
+        status.animate()
             .scaleX(1.15f).scaleY(1.15f)
             .setDuration(130)
             .withEndAction {
-                tvStatus.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
+                status.animate().scaleX(1f).scaleY(1f).setDuration(160).start()
             }
             .start()
 
-        tvStatus.postDelayed({
-            tvStatus.text = "Arahkan kamera ke barcode/QR"
-            tvStatus.setTextColor(Color.WHITE)
+        status.postDelayed({
+            status.text = "Arahkan kamera ke barcode/QR"
+            status.setTextColor(Color.WHITE)
         }, 1900)
     }
 
     fun showFailedFeedback(reason: String = "") {
-        scannerOverlayView.triggerFailureAnimation(reason)
-        tvStatus.text = "✕ Gagal: ${reason.ifBlank { "Barcode tidak terbaca" }}"
-        tvStatus.setTextColor(Color.parseColor("#FF5252"))
+        scannerOverlayView?.triggerFailureAnimation(reason)
+        val status = tvStatus ?: return
+        status.text = "✕ Gagal: ${reason.ifBlank { "Barcode tidak terbaca" }}"
+        status.setTextColor(Color.parseColor("#FF5252"))
 
         // Robotic error micro-shake animation on status text
-        tvStatus.animate()
+        status.animate()
             .translationXBy(14f)
             .setDuration(45)
             .withEndAction {
-                tvStatus.animate()
+                status.animate()
                     .translationXBy(-28f)
                     .setDuration(45)
                     .withEndAction {
-                        tvStatus.animate()
+                        status.animate()
                             .translationXBy(20f)
                             .setDuration(45)
                             .withEndAction {
-                                tvStatus.animate().translationX(0f).setDuration(45).start()
+                                status.animate().translationX(0f).setDuration(45).start()
                             }
                             .start()
                     }
@@ -673,9 +703,9 @@ class KeyboardView(
             }
             .start()
 
-        tvStatus.postDelayed({
-            tvStatus.text = "Arahkan kamera ke barcode/QR"
-            tvStatus.setTextColor(Color.WHITE)
+        status.postDelayed({
+            status.text = "Arahkan kamera ke barcode/QR"
+            status.setTextColor(Color.WHITE)
         }, 1900)
     }
 
@@ -686,7 +716,13 @@ class KeyboardView(
         row3.removeAllViews()
         row4.removeAllViews()
 
-        renderNumberRow()
+        val prefs = KeyboardPreferences(context)
+        if (prefs.isNumberRowEnabled) {
+            rowNumber.visibility = View.VISIBLE
+            renderNumberRow()
+        } else {
+            rowNumber.visibility = View.GONE
+        }
 
         when (currentMode) {
             KeyboardMode.ALPHABET -> renderAlphabetLayout()
@@ -751,27 +787,24 @@ class KeyboardView(
 
         row3.addView(createBackspaceButton(1.5f, isRightEdge = true))
 
-        // Row 4: [?123] [,] [📷 Scan (Biru)] [   One Keyboard   ] [.] [Enter]
+        // Row 4: [?123] [,] [   Spacebar Luas (PixelBoard Gboard Style)   ] [.] [Enter]
         val modeBtn = createFunctionButton("?123", 1.4f, KeyFeedbackType.ACTION, isLeftEdge = true, isBottomRow = true) {
             currentMode = KeyboardMode.SYMBOLS
             renderKeyboard()
         }
         row4.addView(modeBtn)
 
-        row4.addView(createKeyButton(",", 0.9f, "<", isBottomRow = true) { char ->
+        row4.addView(createKeyButton(",", 1.0f, "<", isBottomRow = true) { char ->
             handleCharInput(char)
         })
 
-        // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
-        row4.addView(createScanButton(1.3f, isBottomRow = true))
+        row4.addView(createSpaceButton(5.6f, isBottomRow = true))
 
-        row4.addView(createSpaceButton(3.8f, isBottomRow = true))
-
-        row4.addView(createKeyButton(".", 0.9f, ">", isBottomRow = true) { char ->
+        row4.addView(createKeyButton(".", 1.0f, ">", isBottomRow = true) { char ->
             handleCharInput(char)
         })
 
-        row4.addView(createEnterButton(1.7f, isRightEdge = true, isBottomRow = true))
+        row4.addView(createEnterButton(1.8f, isRightEdge = true, isBottomRow = true))
     }
 
     private fun renderSymbolsLayout() {
@@ -810,16 +843,13 @@ class KeyboardView(
         }
         row4.addView(abcBtn)
 
-        row4.addView(createKeyButton(",", 0.9f, null, isBottomRow = true) { char -> handleCharInput(char) })
+        row4.addView(createKeyButton(",", 1.0f, null, isBottomRow = true) { char -> handleCharInput(char) })
 
-        // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
-        row4.addView(createScanButton(1.3f, isBottomRow = true))
+        row4.addView(createSpaceButton(5.6f, isBottomRow = true))
 
-        row4.addView(createSpaceButton(3.8f, isBottomRow = true))
+        row4.addView(createKeyButton(".", 1.0f, null, isBottomRow = true) { char -> handleCharInput(char) })
 
-        row4.addView(createKeyButton(".", 0.9f, null, isBottomRow = true) { char -> handleCharInput(char) })
-
-        row4.addView(createEnterButton(1.7f, isRightEdge = true, isBottomRow = true))
+        row4.addView(createEnterButton(1.8f, isRightEdge = true, isBottomRow = true))
     }
 
     private fun renderMoreSymbolsLayout() {
@@ -858,16 +888,13 @@ class KeyboardView(
         }
         row4.addView(abcBtn)
 
-        row4.addView(createKeyButton(",", 0.9f, null, isBottomRow = true) { char -> handleCharInput(char) })
+        row4.addView(createKeyButton(",", 1.0f, null, isBottomRow = true) { char -> handleCharInput(char) })
 
-        // Tombol tambahan berwarna biru untuk membuka kamera scan di samping spasi
-        row4.addView(createScanButton(1.3f, isBottomRow = true))
+        row4.addView(createSpaceButton(5.6f, isBottomRow = true))
 
-        row4.addView(createSpaceButton(3.8f, isBottomRow = true))
+        row4.addView(createKeyButton(".", 1.0f, null, isBottomRow = true) { char -> handleCharInput(char) })
 
-        row4.addView(createKeyButton(".", 0.9f, null, isBottomRow = true) { char -> handleCharInput(char) })
-
-        row4.addView(createEnterButton(1.7f, isRightEdge = true, isBottomRow = true))
+        row4.addView(createEnterButton(1.8f, isRightEdge = true, isBottomRow = true))
     }
 
     private fun handleCharInput(char: String) {

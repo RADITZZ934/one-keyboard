@@ -60,9 +60,9 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         } else if (key == KeyboardPreferences.KEY_KEYBOARD_SCALE) {
             keyboardView?.applyKeyboardScale()
             Log.d(TAG, "Keyboard scale changed via settings")
-        } else if (key == KeyboardPreferences.KEY_LONG_PRESS_SYMBOLS) {
+        } else if (key == KeyboardPreferences.KEY_LONG_PRESS_SYMBOLS || key == KeyboardPreferences.KEY_SHOW_NUMBER_ROW) {
             keyboardView?.renderKeyboard()
-            Log.d(TAG, "Long press symbols preference changed")
+            Log.d(TAG, "Keyboard layout preference changed: $key")
         }
     }
 
@@ -91,12 +91,6 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         view.applyTheme(isDark)
         updateWindowNavigationBar(isDark)
         view.applyBottomInsets()
-
-        cameraManager = CameraManager(
-            context = this,
-            lifecycleOwner = this,
-            previewView = view.previewView
-        )
 
         // 1. Instantaneous Key Touch Feedback (Haptic + Native Audio Click on ACTION_DOWN)
         view.onKeyFeedback = { type, targetView ->
@@ -355,13 +349,29 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         }
     }
 
+    private fun getOrCreateCameraManager(kv: KeyboardView): CameraManager {
+        return cameraManager ?: run {
+            kv.ensureScannerInflated()
+            val preview = kv.previewView
+                ?: throw IllegalStateException("previewView must be inflated before CameraManager")
+            CameraManager(
+                context = this,
+                lifecycleOwner = this,
+                previewView = preview
+            ).also { cameraManager = it }
+        }
+    }
+
     private fun checkPermissionAndStartCamera() {
+        val kv = keyboardView ?: return
+        kv.ensureScannerInflated()
+
         val hasCameraPermission = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
 
-        keyboardView?.showPermissionPrompt(!hasCameraPermission)
+        kv.showPermissionPrompt(!hasCameraPermission)
 
         if (hasCameraPermission) {
             startCameraScanning()
@@ -369,6 +379,9 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
     }
 
     private fun startCameraScanning() {
+        val kv = keyboardView ?: return
+        val cm = getOrCreateCameraManager(kv)
+
         val analyzer = BarcodeAnalyzer(
             preferences = preferences,
             onBarcodeScanned = { scanResult ->
@@ -426,8 +439,8 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
             }
         }
 
-        cameraManager?.startCamera(analyzer) {
-            keyboardView?.updateZoomDisplay(cameraManager?.getZoomRatio() ?: 1.0f)
+        cm.startCamera(analyzer) {
+            kv.updateZoomDisplay(cm.getZoomRatio())
         }
     }
 
@@ -453,6 +466,7 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
 
         preferences.unregisterListener(prefChangeListener)
         cameraManager?.release()
+        cameraManager = null
         beepSoundManager.release()
 
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
