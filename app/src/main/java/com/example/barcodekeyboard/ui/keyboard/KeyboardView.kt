@@ -26,13 +26,18 @@ import android.widget.TextView
 import android.view.ViewStub
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import android.widget.EditText
+import android.widget.ProgressBar
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.barcodekeyboard.R
 import com.example.barcodekeyboard.core.clipboard.ClipboardHistoryManager
 import com.example.barcodekeyboard.data.model.ClipboardItem
+import com.example.barcodekeyboard.data.model.tenor.TenorResult
 import com.example.barcodekeyboard.data.preferences.KeyboardPreferences
 import com.example.barcodekeyboard.ui.keyboard.clipboard.ClipboardAdapter
+import com.example.barcodekeyboard.ui.keyboard.gif.TenorGifAdapter
 
 /**
  * Controller and presentation manager for the HeliBoard-inspired keyboard UI.
@@ -88,26 +93,45 @@ class KeyboardView(
     private var btnGrantPermission: Button? = null
     private val toolbarContainer: LinearLayout = rootView.findViewById(R.id.toolbarContainer)
 
-    // Toolbar buttons (FUTO & Bento dual-state action bar)
+    // Toolbar buttons (Image 1: 7 action buttons)
     val btnToggleScanner: View = rootView.findViewById(R.id.btnToggleScanner)
     private val ivScanIcon: ImageView = rootView.findViewById(R.id.ivScanIcon)
     private val tvScanLabel: TextView = rootView.findViewById(R.id.tvScanLabel)
     private val btnFlash: ImageButton = rootView.findViewById(R.id.btnFlash)
     private val btnClipboard: ImageButton = rootView.findViewById(R.id.btnClipboard)
-    private val btnPaste: ImageButton = rootView.findViewById(R.id.btnPaste)
+    private val btnGif: ImageButton = rootView.findViewById(R.id.btnGif)
     private val btnCursorLeft: ImageButton = rootView.findViewById(R.id.btnCursorLeft)
     private val btnCursorRight: ImageButton = rootView.findViewById(R.id.btnCursorRight)
     private val btnToggleTools: ImageButton = rootView.findViewById(R.id.btnToggleTools)
-    private val btnSettings: ImageButton = rootView.findViewById(R.id.btnSettings)
+    private val btnAiVoice: ImageButton = rootView.findViewById(R.id.btnAiVoice)
 
-    // Expandable Bento Tools Drawer Views
+    // AI Voice Assistant Bar Views
+    val aiVoiceContainer: LinearLayout = rootView.findViewById(R.id.aiVoiceContainer)
+    private val ivAiVoiceWave: ImageView = rootView.findViewById(R.id.ivAiVoiceWave)
+    private val tvAiVoiceStatus: TextView = rootView.findViewById(R.id.tvAiVoiceStatus)
+    private val tvAiVoiceLiveText: TextView = rootView.findViewById(R.id.tvAiVoiceLiveText)
+    private val btnAiVoiceStop: Button = rootView.findViewById(R.id.btnAiVoiceStop)
+    private val btnAiVoiceClose: ImageButton = rootView.findViewById(R.id.btnAiVoiceClose)
+    var isAiVoiceListening: Boolean = false
+        private set
+
+    // Expandable Bento Tools Drawer Views (Image 2)
     val toolsDrawerContainer: LinearLayout = rootView.findViewById(R.id.toolsDrawerContainer)
-    private val btnDrawerScan: TextView = rootView.findViewById(R.id.btnDrawerScan)
-    private val btnDrawerClipboard: TextView = rootView.findViewById(R.id.btnDrawerClipboard)
-    private val btnDrawerZoom: TextView = rootView.findViewById(R.id.btnDrawerZoom)
-    private val btnDrawerSize: TextView = rootView.findViewById(R.id.btnDrawerSize)
-    private val btnDrawerSettings: TextView = rootView.findViewById(R.id.btnDrawerSettings)
     private val btnDrawerClose: ImageButton = rootView.findViewById(R.id.btnDrawerClose)
+    private val tvDrawerTitle: TextView = rootView.findViewById(R.id.tvDrawerTitle)
+    private val btnDrawerShortcutGif: ImageButton = rootView.findViewById(R.id.btnDrawerShortcutGif)
+    private val btnDrawerShortcutClipboard: ImageButton = rootView.findViewById(R.id.btnDrawerShortcutClipboard)
+    private val btnDrawerShortcutSettings: ImageButton = rootView.findViewById(R.id.btnDrawerShortcutSettings)
+
+    private val btnCardScanner: LinearLayout = rootView.findViewById(R.id.btnCardScanner)
+    private val btnCardClipboard: LinearLayout = rootView.findViewById(R.id.btnCardClipboard)
+    private val btnCardTextEdit: LinearLayout = rootView.findViewById(R.id.btnCardTextEdit)
+    private val btnCardScale: LinearLayout = rootView.findViewById(R.id.btnCardScale)
+    private val btnCardTheme: LinearLayout = rootView.findViewById(R.id.btnCardTheme)
+    private val btnCardSettings: LinearLayout = rootView.findViewById(R.id.btnCardSettings)
+    private val btnCardZoom: LinearLayout = rootView.findViewById(R.id.btnCardZoom)
+    private val btnCardFeedback: LinearLayout = rootView.findViewById(R.id.btnCardFeedback)
+    private val tvCardFeedback: TextView = rootView.findViewById(R.id.tvCardFeedback)
     var isToolsDrawerOpen: Boolean = false
         private set
 
@@ -118,6 +142,39 @@ class KeyboardView(
     private val btnCloseClipboard: ImageButton = rootView.findViewById(R.id.btnCloseClipboard)
     private val rvClipboardItems: RecyclerView = rootView.findViewById(R.id.rvClipboardItems)
     private val tvClipboardEmpty: TextView = rootView.findViewById(R.id.tvClipboardEmpty)
+
+    // GIF Panel Views
+    val gifContainer: LinearLayout = rootView.findViewById(R.id.gifContainer)
+    private val btnCloseGif: ImageButton = rootView.findViewById(R.id.btnCloseGif)
+    private val llGifSearchBox: LinearLayout = rootView.findViewById(R.id.llGifSearchBox)
+    private val ivGifSearchIcon: ImageView = rootView.findViewById(R.id.ivGifSearchIcon)
+    val etGifSearch: EditText = rootView.findViewById(R.id.etGifSearch)
+    private val btnClearGifSearch: ImageButton = rootView.findViewById(R.id.btnClearGifSearch)
+    private val ivTenorBadge: ImageView = rootView.findViewById(R.id.ivTenorBadge)
+    private val dividerGif: View = rootView.findViewById(R.id.dividerGif)
+    private val rvGifList: RecyclerView = rootView.findViewById(R.id.rvGifList)
+    private val pbGifLoading: ProgressBar = rootView.findViewById(R.id.pbGifLoading)
+    private val llGifEmptyState: LinearLayout = rootView.findViewById(R.id.llGifEmptyState)
+    private val tvGifEmptyTitle: TextView = rootView.findViewById(R.id.tvGifEmptyTitle)
+    private val btnGifRetry: Button = rootView.findViewById(R.id.btnGifRetry)
+    private val llGifSendingOverlay: LinearLayout = rootView.findViewById(R.id.llGifSendingOverlay)
+    private val tvGifSendingStatus: TextView = rootView.findViewById(R.id.tvGifSendingStatus)
+    private lateinit var gifAdapter: TenorGifAdapter
+    var isGifOpen: Boolean = false
+        private set
+
+    // Text Edit Panel Views
+    val textEditContainer: LinearLayout = rootView.findViewById(R.id.textEditContainer)
+    private val btnCloseTextEdit: ImageButton = rootView.findViewById(R.id.btnCloseTextEdit)
+    private val btnTextSelectAll: TextView = rootView.findViewById(R.id.btnTextSelectAll)
+    private val btnTextCopy: TextView = rootView.findViewById(R.id.btnTextCopy)
+    private val btnTextPaste: TextView = rootView.findViewById(R.id.btnTextPaste)
+    private val btnDpadUp: ImageButton = rootView.findViewById(R.id.btnDpadUp)
+    private val btnDpadDown: ImageButton = rootView.findViewById(R.id.btnDpadDown)
+    private val btnDpadLeft: ImageButton = rootView.findViewById(R.id.btnDpadLeft)
+    private val btnDpadRight: ImageButton = rootView.findViewById(R.id.btnDpadRight)
+    var isTextEditOpen: Boolean = false
+        private set
 
     private val clipboardHistoryManager = ClipboardHistoryManager.getInstance(context)
     private lateinit var clipboardAdapter: ClipboardAdapter
@@ -162,6 +219,17 @@ class KeyboardView(
     var onDoubleSpaceClicked: (() -> Unit)? = null
     var onDeleteWordClicked: (() -> Unit)? = null
     var onKeyboardSizeClicked: (() -> Unit)? = null
+    var onAiVoiceClicked: (() -> Unit)? = null
+    var onAiVoiceStopClicked: (() -> Unit)? = null
+    var onAiVoiceCancelClicked: (() -> Unit)? = null
+    var onSelectAllClicked: (() -> Unit)? = null
+    var onCopyClicked: (() -> Unit)? = null
+    var onDpadUpClicked: (() -> Unit)? = null
+    var onDpadDownClicked: (() -> Unit)? = null
+    var onThemeToggleClicked: (() -> Unit)? = null
+    var onFeedbackToggleClicked: (() -> Unit)? = null
+    var onGifSearchRequested: ((String) -> Unit)? = null
+    var onGifSelected: ((TenorResult) -> Unit)? = null
 
     private var shiftButton: ImageButton? = null
     private var lastSpaceTapTime = 0L
@@ -192,10 +260,18 @@ class KeyboardView(
 
     init {
         setupToolbar()
+        setupToolsDrawer()
         setupClipboard()
+        setupGifs()
+        setupTextEdit()
+        setupAiVoiceBar()
         setupWindowInsets()
         applyKeyboardScale()
         applyTheme(isDark = true)
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return (dp * context.resources.displayMetrics.density).toInt()
     }
 
     private fun setupToolbar() {
@@ -203,20 +279,12 @@ class KeyboardView(
             toggleScanner()
         }
 
-        btnToggleTools.setOnClickListener {
-            toggleToolsDrawer()
-        }
-
-        btnFlash.setOnClickListener {
-            onFlashClicked?.invoke()
-        }
-
         btnClipboard.setOnClickListener {
             toggleClipboard()
         }
 
-        btnPaste.setOnClickListener {
-            onPasteClicked?.invoke()
+        btnGif.setOnClickListener {
+            toggleGif()
         }
 
         btnCursorLeft.setOnClickListener {
@@ -227,37 +295,160 @@ class KeyboardView(
             onCursorRightClicked?.invoke()
         }
 
-        btnSettings.setOnClickListener {
+        btnToggleTools.setOnClickListener {
+            toggleToolsDrawer()
+        }
+
+        btnAiVoice.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.ACTION, it)
+            onAiVoiceClicked?.invoke()
+        }
+
+        btnFlash.setOnClickListener {
+            onFlashClicked?.invoke()
+        }
+    }
+
+    private fun setupToolsDrawer() {
+        btnDrawerClose.setOnClickListener {
+            toggleToolsDrawer(false)
+        }
+
+        // Header shortcuts
+        btnDrawerShortcutGif.setOnClickListener {
+            toggleGif()
+        }
+        btnDrawerShortcutClipboard.setOnClickListener {
+            toggleClipboard()
+        }
+        btnDrawerShortcutSettings.setOnClickListener {
+            toggleToolsDrawer(false)
             onSettingsClicked?.invoke()
         }
 
-
-        btnDrawerScan.setOnClickListener {
+        // Feature cards (Image 2)
+        btnCardScanner.setOnClickListener {
             toggleToolsDrawer(false)
-            toggleScanner()
+            toggleScanner(true)
         }
-
-        btnDrawerClipboard.setOnClickListener {
-            toggleToolsDrawer(false)
-            toggleClipboard()
+        btnCardClipboard.setOnClickListener {
+            toggleClipboard(true)
         }
-
-        btnDrawerZoom.setOnClickListener {
-            onQuickZoomClicked?.invoke()
+        btnCardTextEdit.setOnClickListener {
+            toggleTextEdit(true)
         }
-
-        btnDrawerSize.setOnClickListener {
+        btnCardScale.setOnClickListener {
             toggleToolsDrawer(false)
             onKeyboardSizeClicked?.invoke()
         }
-
-        btnDrawerSettings.setOnClickListener {
+        btnCardTheme.setOnClickListener {
+            onThemeToggleClicked?.invoke()
+            applyTheme(!isDarkMode)
+        }
+        btnCardSettings.setOnClickListener {
             toggleToolsDrawer(false)
             onSettingsClicked?.invoke()
         }
+        btnCardZoom.setOnClickListener {
+            onQuickZoomClicked?.invoke()
+        }
+        btnCardFeedback.setOnClickListener {
+            onFeedbackToggleClicked?.invoke()
+        }
+    }
 
-        btnDrawerClose.setOnClickListener {
-            toggleToolsDrawer(false)
+    private fun setupGifs() {
+        btnCloseGif.setOnClickListener {
+            toggleGif(false)
+        }
+
+        gifAdapter = TenorGifAdapter { gifItem, clickedView ->
+            onKeyFeedback?.invoke(KeyFeedbackType.ACTION, clickedView)
+            onGifSelected?.invoke(gifItem)
+        }
+
+        val gridLayoutManager = GridLayoutManager(context, 2)
+        rvGifList.layoutManager = gridLayoutManager
+        rvGifList.adapter = gifAdapter
+
+        etGifSearch.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val text = s?.toString()?.trim() ?: ""
+                btnClearGifSearch.visibility = if (text.isNotEmpty()) View.VISIBLE else View.GONE
+                showGifLoading(true)
+                onGifSearchRequested?.invoke(text)
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+
+        btnClearGifSearch.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.STANDARD, it)
+            etGifSearch.setText("")
+            btnClearGifSearch.visibility = View.GONE
+            showGifLoading(true)
+            onGifSearchRequested?.invoke("")
+        }
+
+        btnGifRetry.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.STANDARD, it)
+            showGifLoading(true)
+            onGifSearchRequested?.invoke(etGifSearch.text.toString().trim())
+        }
+    }
+
+    private fun setupTextEdit() {
+        btnCloseTextEdit.setOnClickListener {
+            toggleTextEdit(false)
+        }
+
+        btnTextSelectAll.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.ACTION, it)
+            onSelectAllClicked?.invoke()
+        }
+
+        btnTextCopy.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.ACTION, it)
+            onCopyClicked?.invoke()
+        }
+
+        btnTextPaste.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.ACTION, it)
+            onPasteClicked?.invoke()
+        }
+
+        btnDpadUp.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.STANDARD, it)
+            onDpadUpClicked?.invoke()
+        }
+
+        btnDpadDown.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.STANDARD, it)
+            onDpadDownClicked?.invoke()
+        }
+
+        btnDpadLeft.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.STANDARD, it)
+            onCursorLeftClicked?.invoke()
+        }
+
+        btnDpadRight.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.STANDARD, it)
+            onCursorRightClicked?.invoke()
+        }
+    }
+
+    private fun setupAiVoiceBar() {
+        btnAiVoiceStop.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.ACTION, it)
+            onAiVoiceStopClicked?.invoke()
+            hideAiVoiceListening()
+        }
+
+        btnAiVoiceClose.setOnClickListener {
+            onKeyFeedback?.invoke(KeyFeedbackType.ACTION, it)
+            onAiVoiceCancelClicked?.invoke()
+            hideAiVoiceListening()
         }
     }
 
@@ -415,6 +606,7 @@ class KeyboardView(
         toolbarContainer.setBackgroundColor(toolbarColor)
 
         updateToolbarIconColors()
+        setupGifs()
         updatePreviewBubbleStyle()
         renderKeyboard()
     }
@@ -438,55 +630,225 @@ class KeyboardView(
             ContextCompat.getColor(context, R.color.heliboard_text_light)
         }
 
-        // FUTO & Bento Scan Pill Styling
+        // 1. Scan Trigger Pill Styling (Image 1)
         if (isScannerOpen) {
             btnToggleScanner.setBackgroundResource(R.drawable.bg_bento_scan_pill)
             ivScanIcon.setColorFilter(Color.WHITE)
             tvScanLabel.setTextColor(Color.WHITE)
         } else {
             if (isDarkMode) {
-                btnToggleScanner.setBackgroundResource(R.drawable.bg_bento_pill_dark)
-                ivScanIcon.setColorFilter(accentColor)
-                tvScanLabel.setTextColor(primaryTextColor)
+                btnToggleScanner.setBackgroundResource(R.drawable.bg_scan_pill_dark)
+                ivScanIcon.setColorFilter(Color.parseColor("#CAD1DC"))
+                tvScanLabel.setTextColor(Color.parseColor("#FFFFFF"))
             } else {
-                btnToggleScanner.setBackgroundResource(R.drawable.bg_bento_pill_cream)
-                ivScanIcon.setColorFilter(accentColor)
-                tvScanLabel.setTextColor(primaryTextColor)
+                btnToggleScanner.setBackgroundResource(R.drawable.bg_scan_pill_light)
+                ivScanIcon.setColorFilter(Color.WHITE)
+                tvScanLabel.setTextColor(Color.WHITE)
             }
         }
 
+        // 2. Toolbar Icons (Image 1: 7 action buttons)
         btnClipboard.setColorFilter(if (isClipboardOpen) accentColor else subTextColor)
-        btnPaste.setColorFilter(primaryTextColor)
+        btnGif.setColorFilter(if (isGifOpen) accentColor else subTextColor)
         btnCursorLeft.setColorFilter(subTextColor)
         btnCursorRight.setColorFilter(subTextColor)
-        btnSettings.setColorFilter(subTextColor)
         btnToggleTools.setColorFilter(if (isToolsDrawerOpen) accentColor else subTextColor)
-        btnDrawerClose.setColorFilter(subTextColor)
+        btnAiVoice.setColorFilter(if (isAiVoiceListening) accentColor else (if (isDarkMode) Color.parseColor("#CAD1DC") else Color.parseColor("#1B64BA")))
 
-        val drawerPillBg = if (isDarkMode) R.drawable.bg_bento_pill_dark else R.drawable.bg_bento_pill_cream
-        btnDrawerScan.setBackgroundResource(drawerPillBg)
-        btnDrawerClipboard.setBackgroundResource(drawerPillBg)
-        btnDrawerZoom.setBackgroundResource(drawerPillBg)
-        btnDrawerSize.setBackgroundResource(drawerPillBg)
-        btnDrawerSettings.setBackgroundResource(drawerPillBg)
-        btnDrawerScan.setTextColor(primaryTextColor)
-        btnDrawerClipboard.setTextColor(primaryTextColor)
-        btnDrawerZoom.setTextColor(primaryTextColor)
-        btnDrawerSize.setTextColor(primaryTextColor)
-        btnDrawerSettings.setTextColor(primaryTextColor)
+        // Drawer header shortcuts
+        btnDrawerClose.setColorFilter(subTextColor)
+        btnDrawerShortcutGif.setColorFilter(subTextColor)
+        btnDrawerShortcutClipboard.setColorFilter(subTextColor)
+        btnDrawerShortcutSettings.setColorFilter(subTextColor)
+
+        // 3. Feature Cards Background (Image 2)
+        val cardBg = if (isDarkMode) R.drawable.bg_feature_card_dark else R.drawable.bg_feature_card_light
+        btnCardScanner.setBackgroundResource(cardBg)
+        btnCardClipboard.setBackgroundResource(cardBg)
+        btnCardTextEdit.setBackgroundResource(cardBg)
+        btnCardScale.setBackgroundResource(cardBg)
+        btnCardTheme.setBackgroundResource(cardBg)
+        btnCardSettings.setBackgroundResource(cardBg)
+        btnCardZoom.setBackgroundResource(cardBg)
+        btnCardFeedback.setBackgroundResource(cardBg)
+
+        // 4. Text Edit Navigation Pill Styling
+        val pillBg = if (isDarkMode) R.drawable.bg_bento_pill_dark else R.drawable.bg_bento_pill_cream
+        btnTextSelectAll.setBackgroundResource(pillBg)
+        btnTextCopy.setBackgroundResource(pillBg)
+        btnTextPaste.setBackgroundResource(pillBg)
+        btnDpadUp.setBackgroundResource(pillBg)
+        btnDpadDown.setBackgroundResource(pillBg)
+        btnDpadLeft.setBackgroundResource(pillBg)
+        btnDpadRight.setBackgroundResource(pillBg)
+
+        btnTextSelectAll.setTextColor(primaryTextColor)
+        btnTextCopy.setTextColor(primaryTextColor)
+        btnTextPaste.setTextColor(primaryTextColor)
+        btnDpadUp.setColorFilter(primaryTextColor)
+        btnDpadDown.setColorFilter(primaryTextColor)
+        btnDpadLeft.setColorFilter(primaryTextColor)
+        btnDpadRight.setColorFilter(primaryTextColor)
 
         if (::clipboardAdapter.isInitialized) {
             clipboardAdapter.updateData(clipboardHistoryManager.getClips(), isDarkMode)
         }
+
+        // 5. GIF Panel Theme Styling
+        val searchBoxBg = if (isDarkMode) R.drawable.bg_bento_pill_dark else R.drawable.bg_bento_pill_cream
+        llGifSearchBox.setBackgroundResource(searchBoxBg)
+        etGifSearch.setTextColor(primaryTextColor)
+        etGifSearch.setHintTextColor(subTextColor)
+        ivGifSearchIcon.setColorFilter(subTextColor)
+        btnClearGifSearch.setColorFilter(subTextColor)
+        btnCloseGif.setColorFilter(subTextColor)
+        ivTenorBadge.setColorFilter(accentColor)
+        tvGifEmptyTitle.setTextColor(subTextColor)
+        btnGifRetry.setTextColor(accentColor)
+    }
+
+    fun closeAllSubPanels() {
+        isClipboardOpen = false
+        isToolsDrawerOpen = false
+        isGifOpen = false
+        isTextEditOpen = false
+
+        clipboardContainer.visibility = View.GONE
+        toolsDrawerContainer.visibility = View.GONE
+        gifContainer.visibility = View.GONE
+        textEditContainer.visibility = View.GONE
+
+        keypadContainer.visibility = View.VISIBLE
+        updateToolbarIconColors()
     }
 
     fun toggleToolsDrawer(forceOpen: Boolean? = null) {
-        isToolsDrawerOpen = forceOpen ?: !isToolsDrawerOpen
-        toolsDrawerContainer.visibility = if (isToolsDrawerOpen) View.VISIBLE else View.GONE
-        val accentColor = if (isDarkMode) ContextCompat.getColor(context, R.color.heliboard_accent) else ContextCompat.getColor(context, R.color.heliboard_accent_light)
-        val subTextColor = if (isDarkMode) ContextCompat.getColor(context, R.color.heliboard_text_sub) else ContextCompat.getColor(context, R.color.heliboard_text_sub_light)
-        btnToggleTools.setColorFilter(if (isToolsDrawerOpen) accentColor else subTextColor)
+        hideCircleHighlight(0)
+        val target = forceOpen ?: !isToolsDrawerOpen
+        if (target) {
+            closeAllSubPanels()
+            isToolsDrawerOpen = true
+            toolsDrawerContainer.visibility = View.VISIBLE
+            keypadContainer.visibility = View.GONE
+        } else {
+            isToolsDrawerOpen = false
+            toolsDrawerContainer.visibility = View.GONE
+            keypadContainer.visibility = View.VISIBLE
+        }
+        updateToolbarIconColors()
         onKeyFeedback?.invoke(KeyFeedbackType.ACTION, btnToggleTools)
+    }
+
+    fun toggleGif(forceOpen: Boolean? = null) {
+        hideCircleHighlight(0)
+        val target = forceOpen ?: !isGifOpen
+        if (target) {
+            closeAllSubPanels()
+            isGifOpen = true
+            gifContainer.visibility = View.VISIBLE
+            keypadContainer.visibility = View.GONE
+            if (::gifAdapter.isInitialized && gifAdapter.itemCount == 0) {
+                showGifLoading(true)
+                onGifSearchRequested?.invoke(etGifSearch.text.toString().trim())
+            }
+        } else {
+            isGifOpen = false
+            gifContainer.visibility = View.GONE
+            keypadContainer.visibility = View.VISIBLE
+            hideGifSending()
+        }
+        updateToolbarIconColors()
+        onKeyFeedback?.invoke(KeyFeedbackType.ACTION, btnGif)
+    }
+
+    fun displayGifs(gifs: List<TenorResult>) {
+        pbGifLoading.visibility = View.GONE
+        if (gifs.isEmpty()) {
+            llGifEmptyState.visibility = View.VISIBLE
+            tvGifEmptyTitle.text = "Tidak ada GIF ditemukan"
+            rvGifList.visibility = View.GONE
+        } else {
+            llGifEmptyState.visibility = View.GONE
+            rvGifList.visibility = View.VISIBLE
+            if (::gifAdapter.isInitialized) {
+                gifAdapter.submitList(gifs)
+            }
+        }
+    }
+
+    fun showGifLoading(isLoading: Boolean) {
+        if (isLoading) {
+            pbGifLoading.visibility = View.VISIBLE
+            llGifEmptyState.visibility = View.GONE
+        } else {
+            pbGifLoading.visibility = View.GONE
+        }
+    }
+
+    fun showGifError(errorMessage: String = "Gagal memuat GIF. Periksa koneksi internet.") {
+        pbGifLoading.visibility = View.GONE
+        llGifEmptyState.visibility = View.VISIBLE
+        tvGifEmptyTitle.text = errorMessage
+        rvGifList.visibility = View.GONE
+        if (::gifAdapter.isInitialized) {
+            gifAdapter.clearLoadingState()
+        }
+    }
+
+    fun showGifSending(statusText: String? = null) {
+        llGifSendingOverlay.visibility = View.VISIBLE
+        tvGifSendingStatus.text = statusText ?: "Mengirim GIF..."
+    }
+
+    fun hideGifSending() {
+        llGifSendingOverlay.visibility = View.GONE
+        if (::gifAdapter.isInitialized) {
+            gifAdapter.clearLoadingState()
+        }
+    }
+
+    fun toggleTextEdit(forceOpen: Boolean? = null) {
+        hideCircleHighlight(0)
+        val target = forceOpen ?: !isTextEditOpen
+        if (target) {
+            closeAllSubPanels()
+            isTextEditOpen = true
+            textEditContainer.visibility = View.VISIBLE
+            keypadContainer.visibility = View.GONE
+        } else {
+            isTextEditOpen = false
+            textEditContainer.visibility = View.GONE
+            keypadContainer.visibility = View.VISIBLE
+        }
+        updateToolbarIconColors()
+    }
+
+    fun showAiVoiceListening(statusText: String = "Mendengarkan... Silakan bicara") {
+        aiVoiceContainer.visibility = View.VISIBLE
+        toolbarContainer.visibility = View.GONE
+        tvAiVoiceStatus.text = statusText
+        tvAiVoiceLiveText.text = "Katakan teks yang ingin diketik..."
+        isAiVoiceListening = true
+    }
+
+    fun updateAiVoicePartialText(text: String) {
+        if (text.isNotEmpty()) {
+            tvAiVoiceLiveText.text = text
+        }
+    }
+
+    fun updateAiVoiceRms(rmsdB: Float) {
+        val scale = 1.0f + (rmsdB.coerceIn(0f, 10f) / 10f) * 0.3f
+        ivAiVoiceWave.scaleX = scale
+        ivAiVoiceWave.scaleY = scale
+    }
+
+    fun hideAiVoiceListening() {
+        aiVoiceContainer.visibility = View.GONE
+        toolbarContainer.visibility = View.VISIBLE
+        isAiVoiceListening = false
+        ivAiVoiceWave.scaleX = 1.0f
+        ivAiVoiceWave.scaleY = 1.0f
     }
 
     fun ensureScannerInflated(): View {
@@ -530,8 +892,7 @@ class KeyboardView(
         val shouldOpen = forceOpen ?: !isScannerOpen
         if (shouldOpen) {
             ensureScannerInflated()
-            if (isClipboardOpen) toggleClipboard(false)
-            if (isToolsDrawerOpen) toggleToolsDrawer(false)
+            closeAllSubPanels()
         }
         isScannerOpen = shouldOpen
         scannerContainer?.visibility = if (isScannerOpen) View.VISIBLE else View.GONE
@@ -583,25 +944,23 @@ class KeyboardView(
 
     fun toggleClipboard(forceOpen: Boolean? = null) {
         hideCircleHighlight(0)
-        isClipboardOpen = forceOpen ?: !isClipboardOpen
+        val target = forceOpen ?: !isClipboardOpen
 
-        if (isClipboardOpen) {
-            if (isScannerOpen) {
-                toggleScanner(false)
-            }
-            if (isToolsDrawerOpen) {
-                toggleToolsDrawer(false)
-            }
+        if (target) {
+            closeAllSubPanels()
+            isClipboardOpen = true
             clipboardContainer.visibility = View.VISIBLE
             keypadContainer.visibility = View.GONE
             clipboardHistoryManager.captureCurrentClipboard(context)
             refreshClipboardList()
         } else {
+            isClipboardOpen = false
             clipboardContainer.visibility = View.GONE
             keypadContainer.visibility = View.VISIBLE
         }
 
         updateToolbarIconColors()
+        onKeyFeedback?.invoke(KeyFeedbackType.ACTION, btnClipboard)
     }
 
     fun updateFlashIcon(isTorchOn: Boolean) {
@@ -619,9 +978,25 @@ class KeyboardView(
         }.start()
     }
 
+    private fun updateStatusIcon(drawableResId: Int?, tintColor: Int? = null) {
+        val status = tvStatus ?: return
+        if (drawableResId != null) {
+            val d = ContextCompat.getDrawable(context, drawableResId)?.mutate()?.apply {
+                val size = dpToPx(13)
+                setBounds(0, 0, size, size)
+                if (tintColor != null) setTint(tintColor)
+            }
+            status.setCompoundDrawables(d, null, null, null)
+            status.compoundDrawablePadding = dpToPx(6)
+        } else {
+            status.setCompoundDrawables(null, null, null, null)
+        }
+    }
+
     fun setStatusText(text: String, isAccent: Boolean = false) {
         val status = tvStatus ?: return
         status.text = text
+        updateStatusIcon(null)
         status.setTextColor(if (isAccent) Color.parseColor("#00E5FF") else Color.WHITE)
     }
 
@@ -629,15 +1004,18 @@ class KeyboardView(
         scannerOverlayView?.notifyFocusResult(success)
         val status = tvStatus ?: return
         if (success) {
-            status.text = "✓ Fokus tajam • Siap memindai"
+            status.text = "Fokus tajam • Siap memindai"
+            updateStatusIcon(R.drawable.ic_check_circle, Color.parseColor("#00E676"))
             status.setTextColor(Color.parseColor("#00E676"))
         } else {
             status.text = "Ketuk layar untuk fokus • 2x zoom"
+            updateStatusIcon(null)
             status.setTextColor(Color.WHITE)
         }
         status.postDelayed({
             if (isScannerOpen) {
                 status.text = "Ketuk layar untuk fokus • 2x zoom"
+                updateStatusIcon(null)
                 status.setTextColor(Color.WHITE)
             }
         }, 1800)
@@ -647,7 +1025,8 @@ class KeyboardView(
         scannerOverlayView?.setBarcodeTargetLocked(locked)
         val status = tvStatus ?: return
         if (locked) {
-            status.text = "🔍 Barcode terdeteksi • Tahan posisi"
+            status.text = "Barcode terdeteksi • Tahan posisi"
+            updateStatusIcon(R.drawable.ic_scan, Color.parseColor("#00E676"))
             status.setTextColor(Color.parseColor("#00E676"))
         }
     }
@@ -660,7 +1039,8 @@ class KeyboardView(
     fun showScannedFeedback(text: String) {
         scannerOverlayView?.triggerSuccessAnimation()
         val status = tvStatus ?: return
-        status.text = "✓ Berhasil: $text"
+        status.text = "Berhasil: $text"
+        updateStatusIcon(R.drawable.ic_check_circle, Color.parseColor("#00E676"))
         status.setTextColor(Color.parseColor("#00E676"))
         status.animate()
             .scaleX(1.15f).scaleY(1.15f)
@@ -672,6 +1052,7 @@ class KeyboardView(
 
         status.postDelayed({
             status.text = "Arahkan kamera ke barcode/QR"
+            updateStatusIcon(null)
             status.setTextColor(Color.WHITE)
         }, 1900)
     }
@@ -679,7 +1060,8 @@ class KeyboardView(
     fun showFailedFeedback(reason: String = "") {
         scannerOverlayView?.triggerFailureAnimation(reason)
         val status = tvStatus ?: return
-        status.text = "✕ Gagal: ${reason.ifBlank { "Barcode tidak terbaca" }}"
+        status.text = "Gagal: ${reason.ifBlank { "Barcode tidak terbaca" }}"
+        updateStatusIcon(R.drawable.ic_close, Color.parseColor("#FF5252"))
         status.setTextColor(Color.parseColor("#FF5252"))
 
         // Robotic error micro-shake animation on status text
@@ -749,7 +1131,7 @@ class KeyboardView(
         val r1Keys = listOf("q", "w", "e", "r", "t", "y", "u", "i", "o", "p")
         for ((index, k) in r1Keys.withIndex()) {
             val label = if (isUpper) k.toUpperCase(java.util.Locale.ROOT) else k
-            val hint = alphabetHintMap[k]
+            val hint = if (rowNumber.visibility == View.VISIBLE) null else alphabetHintMap[k]
             val isLeft = (index == 0)
             val isRight = (index == r1Keys.lastIndex)
             row1.addView(createKeyButton(label, 1f, hint, isLeftEdge = isLeft, isRightEdge = isRight) { char ->

@@ -126,7 +126,7 @@ class HomeActivity : AppCompatActivity() {
             vibrationHelper.vibrateSuccess()
             val sampleBarcode = "8992761" + (10000..99999).random()
             val prefix = if (etHomeTestInput.text.isNullOrBlank()) "" else "\n"
-            etHomeTestInput.append("$prefix[✓ Scan: $sampleBarcode]")
+            etHomeTestInput.append("$prefix[Scan: $sampleBarcode]")
 
             // Also record into scan history so user sees live update
             historyManager.addScan(sampleBarcode, "EAN_13")
@@ -138,7 +138,7 @@ class HomeActivity : AppCompatActivity() {
             beepSoundManager.playFailureBeep()
             vibrationHelper.vibrateFailure()
             val prefix = if (etHomeTestInput.text.isNullOrBlank()) "" else "\n"
-            etHomeTestInput.append("$prefix[✕ Gagal: Barcode Tidak Terbaca]")
+            etHomeTestInput.append("$prefix[Gagal: Barcode Tidak Terbaca]")
             Toast.makeText(this, "Beep Gagal (Error)", Toast.LENGTH_SHORT).show()
         }
     }
@@ -148,7 +148,7 @@ class HomeActivity : AppCompatActivity() {
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Barcode", item.text)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, "✓ '${item.text}' disalin", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "'${item.text}' disalin", Toast.LENGTH_SHORT).show()
         }
 
         rvScanHistory.layoutManager = LinearLayoutManager(this)
@@ -204,7 +204,7 @@ class HomeActivity : AppCompatActivity() {
         val isSelected = isKeyboardSelected()
 
         if (isEnabled && isSelected) {
-            tvHomeActivationStatus.text = "✓ Aktif"
+            tvHomeActivationStatus.text = "Aktif"
             tvHomeActivationStatus.setTextColor(getColor(R.color.bento_blue))
             cardActivationAlert.visibility = View.GONE
         } else if (isEnabled) {
@@ -220,7 +220,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun handleActivationClick() {
         if (isKeyboardEnabled() && isKeyboardSelected()) {
-            Toast.makeText(this, "✓ One Keyboard sudah aktif!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "One Keyboard sudah aktif!", Toast.LENGTH_SHORT).show()
             return
         }
 

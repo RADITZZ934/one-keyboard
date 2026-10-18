@@ -239,8 +239,13 @@
                         android:layout_marginEnd="6dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_bento_pill_dark"
+                        android:drawableStart="@drawable/ic_check_circle"
+                        android:drawableTint="#00E676"
+                        android:drawablePadding="6dp"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
                         android:gravity="center"
-                        android:text="✓ Tes Beep Sukses"
+                        android:text="Tes Beep Sukses"
                         android:textColor="#00E676"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -252,12 +257,16 @@
                         android:layout_marginStart="6dp"
                         android:layout_weight="1"
                         android:background="@drawable/bg_bento_pill_dark"
+                        android:drawableStart="@drawable/ic_close"
+                        android:drawableTint="#FF5252"
+                        android:drawablePadding="6dp"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
                         android:gravity="center"
-                        android:text="✕ Tes Beep Gagal"
+                        android:text="Tes Beep Gagal"
                         android:textColor="#FF5252"
                         android:textSize="11sp"
                         android:textStyle="bold" />
-
                 </LinearLayout>
 
             </LinearLayout>

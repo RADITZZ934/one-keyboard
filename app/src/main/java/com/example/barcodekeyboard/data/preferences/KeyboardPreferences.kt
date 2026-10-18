@@ -49,10 +49,19 @@ class KeyboardPreferences(context: Context) {
         const val KEY_SWIPE_DELETE = "pref_swipe_delete"
         const val KEY_LONG_PRESS_SYMBOLS = "pref_long_press_symbols"
         const val KEY_SHOW_NUMBER_ROW = "pref_show_number_row"
+        const val KEY_TENOR_API_KEY = "pref_tenor_api_key"
+        const val DEFAULT_TENOR_API_KEY = "LIVDSRZULELA"
     }
+
+    val tenorApiKey: String
+        get() = prefs.getString(KEY_TENOR_API_KEY, null)?.takeIf { it.isNotBlank() } ?: DEFAULT_TENOR_API_KEY
 
     val themeMode: String
         get() = prefs.getString(KEY_THEME, THEME_SYSTEM) ?: THEME_SYSTEM
+
+    fun setThemeMode(mode: String) {
+        prefs.edit().putString(KEY_THEME, mode).apply()
+    }
 
     /**
      * Resolves whether Dark Mode is currently active based on user preference
@@ -109,13 +118,21 @@ class KeyboardPreferences(context: Context) {
         get() = prefs.getBoolean(KEY_LONG_PRESS_SYMBOLS, true)
 
     val isNumberRowEnabled: Boolean
-        get() = prefs.getBoolean(KEY_SHOW_NUMBER_ROW, false)
+        get() = prefs.getBoolean(KEY_SHOW_NUMBER_ROW, true)
 
     val isVibrationEnabled: Boolean
         get() = prefs.getBoolean(KEY_VIBRATE, true)
 
+    fun setVibrationEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_VIBRATE, enabled).apply()
+    }
+
     val isSoundEnabled: Boolean
         get() = prefs.getBoolean(KEY_SOUND, true)
+
+    fun setSoundEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_SOUND, enabled).apply()
+    }
 
     val sharedPreferences: SharedPreferences
         get() = prefs

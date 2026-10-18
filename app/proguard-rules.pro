@@ -34,3 +34,17 @@
 -keepclassmembers class * {
     @androidx.annotation.Keep *;
 }
+
+# 6. Retrofit & Gson
+-dontwarn retrofit2.**
+-keep class retrofit2.** { *; }
+-keepattributes Signature
+-keepattributes Exceptions
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# 7. Glide
+-keep public class * extends com.bumptech.glide.module.AppGlideModule
+-keep public class * extends com.bumptech.glide.module.LibraryGlideModule
+-dontwarn com.bumptech.glide.**

@@ -19,7 +19,7 @@
             app:useSimpleSummaryProvider="true" />
 
         <SwitchPreferenceCompat
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="pref_show_number_row"
             android:summary="@string/pref_show_number_row_summary"
             android:title="@string/pref_show_number_row_title"

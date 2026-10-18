@@ -554,7 +554,7 @@ class SettingsActivity : AppCompatActivity() {
             ) == PackageManager.PERMISSION_GRANTED
 
             if (hasPermission) {
-                Toast.makeText(this, "✓ Izin kamera sudah aktif!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Izin kamera sudah aktif!", Toast.LENGTH_SHORT).show()
             } else {
                 ActivityCompat.requestPermissions(
                     this,
@@ -579,9 +579,17 @@ class SettingsActivity : AppCompatActivity() {
         btnCheckCameraPermission.setBackgroundResource(R.drawable.bg_bento_pill_blue)
         btnCheckCameraPermission.setTextColor(android.graphics.Color.WHITE)
         if (hasPermission) {
-            btnCheckCameraPermission.text = "✓ Izin Kamera Aktif"
+            btnCheckCameraPermission.text = "Izin Kamera Aktif"
+            val checkIcon = ContextCompat.getDrawable(this, R.drawable.ic_check_circle)?.mutate()?.apply {
+                val size = (16 * resources.displayMetrics.density).toInt()
+                setBounds(0, 0, size, size)
+                setTint(android.graphics.Color.WHITE)
+            }
+            btnCheckCameraPermission.setCompoundDrawables(checkIcon, null, null, null)
+            btnCheckCameraPermission.compoundDrawablePadding = (6 * resources.displayMetrics.density).toInt()
         } else {
             btnCheckCameraPermission.text = "Izinkan Akses Kamera"
+            btnCheckCameraPermission.setCompoundDrawables(null, null, null, null)
         }
     }
 

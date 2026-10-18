@@ -25,7 +25,7 @@
         android:layout="@layout/layout_scanner_viewfinder" />
 
 
-    <!-- 2. FUTO & Bento-Inspired Dual-State Action Toolbar -->
+    <!-- 2. Bento Toolbar (7 Action Buttons as in PixelBoard / Gboard Image 1) -->
     <LinearLayout
         android:id="@+id/toolbarContainer"
         android:layout_width="match_parent"
@@ -36,31 +36,31 @@
         android:paddingStart="8dp"
         android:paddingEnd="8dp">
 
-        <!-- Primary Bento Scan Pill Button -->
+        <!-- 1. Scanner Trigger Pill Button -->
         <LinearLayout
             android:id="@+id/btnToggleScanner"
             android:layout_width="wrap_content"
-            android:layout_height="34dp"
-            android:background="@drawable/bg_bento_scan_pill"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_scan_pill_dark"
             android:clickable="true"
             android:focusable="true"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="12dp"
-            android:paddingEnd="14dp">
+            android:paddingStart="10dp"
+            android:paddingEnd="12dp">
 
             <ImageView
                 android:id="@+id/ivScanIcon"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:src="@drawable/ic_scan"
-                app:tint="#FFFFFF" />
+                app:tint="#CAD1DC" />
 
             <TextView
                 android:id="@+id/tvScanLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="5dp"
                 android:text="Scan"
                 android:textColor="#FFFFFF"
                 android:textSize="13sp"
@@ -70,206 +70,534 @@
         <!-- Flashlight Button (visible when scanner active) -->
         <ImageButton
             android:id="@+id/btnFlash"
-            android:layout_width="36dp"
+            android:layout_width="34dp"
             android:layout_height="34dp"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="4dp"
             android:background="@drawable/bg_bento_toolbar_pill"
             android:contentDescription="Flashlight"
-            android:padding="6dp"
+            android:padding="7dp"
             android:src="@drawable/ic_flash"
             android:visibility="gone"
             app:tint="@color/heliboard_text" />
 
-        <!-- Clipboard History Button -->
+        <!-- 2. Papan Klip Button -->
         <ImageButton
             android:id="@+id/btnClipboard"
-            android:layout_width="36dp"
+            android:layout_width="34dp"
             android:layout_height="34dp"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="5dp"
             android:background="@drawable/bg_bento_toolbar_pill"
             android:contentDescription="Papan Klip"
             android:padding="7dp"
             android:src="@drawable/ic_clipboard"
-            app:tint="@color/heliboard_accent" />
+            app:tint="@color/heliboard_text" />
 
-        <!-- Clipboard Paste Button -->
+
+        <!-- 4. GIF Button -->
         <ImageButton
-            android:id="@+id/btnPaste"
-            android:layout_width="36dp"
+            android:id="@+id/btnGif"
+            android:layout_width="34dp"
             android:layout_height="34dp"
             android:layout_marginStart="4dp"
             android:background="@drawable/bg_bento_toolbar_pill"
-            android:contentDescription="Paste"
-            android:padding="7dp"
-            android:src="@drawable/ic_paste"
-            app:tint="@color/heliboard_text_sub" />
+            android:contentDescription="GIF"
+            android:padding="6dp"
+            android:src="@drawable/ic_gif"
+            app:tint="@color/heliboard_text" />
 
-        <!-- Move Cursor Left -->
+        <!-- 5. Cursor Navigation (< and >) -->
         <ImageButton
             android:id="@+id/btnCursorLeft"
-            android:layout_width="34dp"
+            android:layout_width="28dp"
             android:layout_height="34dp"
             android:layout_marginStart="2dp"
             android:background="@drawable/bg_bento_toolbar_pill"
             android:contentDescription="Cursor Left"
-            android:padding="7dp"
+            android:padding="6dp"
             android:src="@drawable/ic_arrow_left"
-            app:tint="@color/heliboard_text_sub" />
+            app:tint="@color/heliboard_text" />
 
-        <!-- Move Cursor Right -->
         <ImageButton
             android:id="@+id/btnCursorRight"
-            android:layout_width="34dp"
+            android:layout_width="28dp"
             android:layout_height="34dp"
-            android:layout_marginStart="2dp"
+            android:layout_marginStart="1dp"
             android:background="@drawable/bg_bento_toolbar_pill"
             android:contentDescription="Cursor Right"
-            android:padding="7dp"
+            android:padding="6dp"
             android:src="@drawable/ic_arrow_right"
-            app:tint="@color/heliboard_text_sub" />
+            app:tint="@color/heliboard_text" />
 
+        <!-- Spacer to push right group to the end -->
         <View
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />
 
-        <!-- Bento Tools Drawer Toggle Button -->
+        <!-- 6. Tombol 4 Kotak (Fitur Lanjutan) -->
         <ImageButton
             android:id="@+id/btnToggleTools"
-            android:layout_width="36dp"
+            android:layout_width="34dp"
             android:layout_height="34dp"
             android:background="@drawable/bg_bento_toolbar_pill"
-            android:contentDescription="More Tools"
+            android:contentDescription="Fitur Lanjutan"
             android:padding="7dp"
-            android:src="@drawable/ic_more_tools"
-            app:tint="@color/heliboard_text_sub" />
+            android:src="@drawable/ic_bento_grid"
+            app:tint="@color/heliboard_text" />
 
-        <!-- Settings Shortcut -->
+        <!-- 7. AI Voice Assistant -->
         <ImageButton
-            android:id="@+id/btnSettings"
+            android:id="@+id/btnAiVoice"
             android:layout_width="36dp"
-            android:layout_height="34dp"
-            android:layout_marginStart="4dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="5dp"
             android:background="@drawable/bg_bento_toolbar_pill"
-            android:contentDescription="Settings"
-            android:padding="7dp"
-            android:src="@drawable/ic_settings"
+            android:contentDescription="AI Voice Assistant"
+            android:padding="6dp"
+            android:src="@drawable/ic_ai_mic"
+            app:tint="@color/heliboard_text" />
+
+    </LinearLayout>
+
+    <!-- AI Voice Assistant Listening Bar (Material 3 Gemini Pulse) -->
+    <LinearLayout
+        android:id="@+id/aiVoiceContainer"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@color/heliboard_toolbar_bg"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="14dp"
+        android:paddingEnd="12dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/ivAiVoiceWave"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_ai_mic"
+            app:tint="#A8C7FA" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvAiVoiceStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mendengarkan... Silakan bicara"
+                android:textColor="#A8C7FA"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvAiVoiceLiveText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="Katakan teks yang ingin diketik..."
+                android:textColor="@color/heliboard_text_sub"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnAiVoiceStop"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="Selesai"
+            android:textColor="#A8C7FA"
+            android:textSize="12sp" />
+
+        <ImageButton
+            android:id="@+id/btnAiVoiceClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_toolbar_item"
+            android:contentDescription="Batal"
+            android:padding="6dp"
+            android:src="@drawable/ic_close"
             app:tint="@color/heliboard_text_sub" />
 
     </LinearLayout>
 
-    <!-- Expandable Bento Tools Drawer (Futo Style) -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/heliboard_divider" />
+
+    <!-- 4. Fitur Lanjutan (2-Column Feature Cards Drawer Image 2) -->
     <LinearLayout
         android:id="@+id/toolsDrawerContainer"
         android:layout_width="match_parent"
-        android:layout_height="46dp"
+        android:layout_height="225dp"
         android:background="@color/heliboard_surface"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
+        android:orientation="vertical"
         android:visibility="gone">
 
-        <HorizontalScrollView
-            android:layout_width="0dp"
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="10dp">
+
+            <ImageButton
+                android:id="@+id/btnDrawerClose"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_toolbar_item"
+                android:contentDescription="Tutup Fitur"
+                android:padding="7dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/heliboard_text" />
+
+            <TextView
+                android:id="@+id/tvDrawerTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Fitur Lanjutan"
+                android:textColor="@color/heliboard_text"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+
+            <ImageButton
+                android:id="@+id/btnDrawerShortcutGif"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_marginStart="2dp"
+                android:background="@drawable/bg_bento_toolbar_pill"
+                android:contentDescription="GIF"
+                android:padding="6dp"
+                android:src="@drawable/ic_gif"
+                app:tint="@color/heliboard_text_sub" />
+
+            <ImageButton
+                android:id="@+id/btnDrawerShortcutClipboard"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_marginStart="2dp"
+                android:background="@drawable/bg_bento_toolbar_pill"
+                android:contentDescription="Papan Klip"
+                android:padding="7dp"
+                android:src="@drawable/ic_clipboard"
+                app:tint="@color/heliboard_text_sub" />
+
+            <ImageButton
+                android:id="@+id/btnDrawerShortcutSettings"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:layout_marginStart="2dp"
+                android:background="@drawable/bg_bento_toolbar_pill"
+                android:contentDescription="Pengaturan"
+                android:padding="7dp"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/heliboard_text_sub" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/heliboard_divider" />
+
+        <!-- 2-Column Feature Cards Grid ScrollView -->
+        <ScrollView
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:scrollbars="none">
+            android:paddingStart="10dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="8dp">
 
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/btnDrawerScan"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_bento_pill_dark"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:text="📷 Kamera Barcode"
-                    android:textColor="@color/heliboard_text"
-                    android:textSize="12sp" />
+                <!-- Row 1: Scan Barcode & Papan Klip -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/btnDrawerClipboard"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_bento_pill_dark"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:text="📋 Papan Klip"
-                    android:textColor="@color/heliboard_text"
-                    android:textSize="12sp" />
+                    <LinearLayout
+                        android:id="@+id/btnCardScanner"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginEnd="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_feature_card_dark"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
 
-                <TextView
-                    android:id="@+id/btnDrawerZoom"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_bento_pill_dark"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:text="🔍 Zoom Kamera"
-                    android:textColor="@color/heliboard_text"
-                    android:textSize="12sp" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_scan"
+                            app:tint="@color/heliboard_accent" />
 
-                <TextView
-                    android:id="@+id/btnDrawerSize"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_bento_pill_dark"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:text="📏 Ukuran"
-                    android:textColor="@color/heliboard_text"
-                    android:textSize="12sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Scan Barcode"
+                            android:textColor="@color/heliboard_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
-                <TextView
-                    android:id="@+id/btnDrawerSettings"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_bento_pill_dark"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center"
-                    android:paddingStart="12dp"
-                    android:paddingEnd="12dp"
-                    android:text="⚙️ Pengaturan"
-                    android:textColor="@color/heliboard_text"
-                    android:textSize="12sp" />
+                    <LinearLayout
+                        android:id="@+id/btnCardClipboard"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_feature_card_dark"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_clipboard"
+                            app:tint="@color/heliboard_accent" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Papan Klip"
+                            android:textColor="@color/heliboard_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Row 2: Pengeditan Teks & Ubah Ukuran -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/btnCardTextEdit"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginEnd="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_feature_card_dark"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_keyboard"
+                            app:tint="@color/heliboard_accent" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Pengeditan teks"
+                            android:textColor="@color/heliboard_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btnCardScale"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_feature_card_dark"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_reset"
+                            app:tint="@color/heliboard_accent" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Ubah ukuran"
+                            android:textColor="@color/heliboard_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Row 3: Tema Keyboard & Pengaturan -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/btnCardTheme"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginEnd="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_feature_card_dark"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_theme"
+                            app:tint="@color/heliboard_accent" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Tema Keyboard"
+                            android:textColor="@color/heliboard_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btnCardSettings"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_feature_card_dark"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_settings"
+                            app:tint="@color/heliboard_accent" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Pengaturan"
+                            android:textColor="@color/heliboard_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Row 4: Zoom Kamera & Suara/Getar -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/btnCardZoom"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginEnd="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_feature_card_dark"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_camera"
+                            app:tint="@color/heliboard_accent" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Zoom Kamera"
+                            android:textColor="@color/heliboard_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btnCardFeedback"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_feature_card_dark"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_info"
+                            app:tint="@color/heliboard_accent" />
+
+                        <TextView
+                            android:id="@+id/tvCardFeedback"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:text="Suara &amp; Getar"
+                            android:textColor="@color/heliboard_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
 
             </LinearLayout>
-        </HorizontalScrollView>
-
-        <ImageButton
-            android:id="@+id/btnDrawerClose"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginStart="6dp"
-            android:background="@drawable/bg_bento_toolbar_pill"
-            android:contentDescription="Tutup Tools"
-            android:padding="6dp"
-            android:src="@drawable/ic_chevron_up"
-            app:tint="@color/heliboard_text_sub" />
-
+        </ScrollView>
     </LinearLayout>
 
     <View
@@ -294,7 +622,7 @@
             android:layout_width="match_parent"
             android:layout_height="44dp"
             android:orientation="horizontal"
-            android:visibility="gone" />
+            android:visibility="visible" />
 
         <!-- Row 1 -->
         <LinearLayout
@@ -423,6 +751,346 @@
             android:textSize="13sp"
             android:visibility="gone" />
 
+    </LinearLayout>
+
+
+    <!-- 6. GIF & Reaksi Cepat Panel -->
+    <!-- 6. GIF Tenor Panel -->
+    <LinearLayout
+        android:id="@+id/gifContainer"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:background="@color/heliboard_surface"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Top Search & Action Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <ImageButton
+                android:id="@+id/btnCloseGif"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:background="@drawable/bg_bento_toolbar_pill"
+                android:contentDescription="Tutup GIF"
+                android:padding="7dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/heliboard_text" />
+
+            <!-- Search Input Box -->
+            <LinearLayout
+                android:id="@+id/llGifSearchBox"
+                android:layout_width="0dp"
+                android:layout_height="34dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_bento_pill_dark"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="10dp"
+                android:paddingEnd="8dp">
+
+                <ImageView
+                    android:id="@+id/ivGifSearchIcon"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/heliboard_text_sub" />
+
+                <EditText
+                    android:id="@+id/etGifSearch"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:hint="Cari GIF di Tenor..."
+                    android:imeOptions="actionSearch"
+                    android:inputType="textNoSuggestions"
+                    android:singleLine="true"
+                    android:textColor="@color/heliboard_text"
+                    android:textColorHint="@color/heliboard_text_sub"
+                    android:textSize="13sp" />
+
+                <ImageButton
+                    android:id="@+id/btnClearGifSearch"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Hapus pencarian"
+                    android:padding="4dp"
+                    android:src="@drawable/ic_close"
+                    android:visibility="gone"
+                    app:tint="@color/heliboard_text_sub" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivTenorBadge"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_gif"
+                app:tint="@color/heliboard_accent" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/dividerGif"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/heliboard_divider" />
+
+        <!-- Status / Loading / Content Container -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- RecyclerView for Tenor GIFs -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvGifList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="3dp"
+                android:scrollbars="vertical" />
+
+            <!-- Loading Spinner -->
+            <ProgressBar
+                android:id="@+id/pbGifLoading"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:visibility="gone" />
+
+            <!-- Empty / Error State Layout -->
+            <LinearLayout
+                android:id="@+id/llGifEmptyState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvGifEmptyTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tidak ada GIF ditemukan"
+                    android:textColor="@color/heliboard_text_sub"
+                    android:textSize="13sp" />
+
+                <Button
+                    android:id="@+id/btnGifRetry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_bento_toolbar_pill"
+                    android:text="Coba Lagi"
+                    android:textColor="@color/heliboard_accent"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Sending Overlay Feedback -->
+            <LinearLayout
+                android:id="@+id/llGifSendingOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#80000000"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <ProgressBar
+                    android:layout_width="36dp"
+                    android:layout_height="36dp" />
+
+                <TextView
+                    android:id="@+id/tvGifSendingStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Mengirim GIF..."
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- 7. Pengeditan Teks D-Pad Panel -->
+    <LinearLayout
+        android:id="@+id/textEditContainer"
+        android:layout_width="match_parent"
+        android:layout_height="225dp"
+        android:background="@color/heliboard_surface"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="10dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_keyboard"
+                app:tint="@color/heliboard_accent" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Pengeditan Teks"
+                android:textColor="@color/heliboard_text"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <ImageButton
+                android:id="@+id/btnCloseTextEdit"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_toolbar_item"
+                android:contentDescription="Tutup Pengeditan Teks"
+                android:padding="7dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/heliboard_text" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/heliboard_divider" />
+
+        <!-- D-Pad and Action Buttons Area -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="12dp">
+
+            <!-- Action buttons (Select All, Copy, Paste) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/btnTextSelectAll"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_bento_pill_dark"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="Pilih Semua"
+                    android:textColor="@color/heliboard_text"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnTextCopy"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_bento_pill_dark"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="Salin"
+                    android:textColor="@color/heliboard_text"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnTextPaste"
+                    android:layout_width="match_parent"
+                    android:layout_height="38dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_bento_pill_dark"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:text="Tempel"
+                    android:textColor="@color/heliboard_text"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Navigation Arrow D-Pad -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="14dp"
+                android:layout_weight="1.2"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/btnDpadUp"
+                    android:layout_width="48dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_bento_pill_dark"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_chevron_up"
+                    app:tint="@color/heliboard_text" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="4dp"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/btnDpadLeft"
+                        android:layout_width="48dp"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_bento_pill_dark"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_arrow_left"
+                        app:tint="@color/heliboard_text" />
+
+                    <ImageButton
+                        android:id="@+id/btnDpadRight"
+                        android:layout_width="48dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="24dp"
+                        android:background="@drawable/bg_bento_pill_dark"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="@color/heliboard_text" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btnDpadDown"
+                    android:layout_width="48dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_bento_pill_dark"
+                    android:padding="8dp"
+                    android:rotation="180"
+                    android:src="@drawable/ic_chevron_up"
+                    app:tint="@color/heliboard_text" />
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

@@ -1,0 +1,35 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Circular outline border -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M11,3.5 C5.75,3.5 1.5,7.75 1.5,13 C1.5,18.25 5.75,22.5 11,22.5 C16.25,22.5 20.5,18.25 20.5,13 C20.5,10.8 19.75,8.78 18.5,7.2" />
+
+    <!-- Microphone capsule -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M11,7c-1.1,0 -2,0.9 -2,2v4c0,1.1 0.9,2 2,2s2,-0.9 2,-2V9c0,-1.1 -0.9,-2 -2,-2z" />
+
+    <!-- Microphone cradle and stand -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M7.5,12.5c0,1.93 1.57,3.5 3.5,3.5s3.5,-1.57 3.5,-3.5" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M11,16v2.5M8.5,18.5h5" />
+
+    <!-- Top-Right AI Sparkle Star -->
+    <path
+        android:fillColor="#818CF8"
+        android:pathData="M19,1.5 L19.7,3.8 L22,4.5 L19.7,5.2 L19,7.5 L18.3,5.2 L16,4.5 L18.3,3.8 Z" />
+</vector>

@@ -30,24 +30,30 @@ class MaterialKeyBalloonView @JvmOverloads constructor(
     private val balloonPath = Path()
     private val headRectF = RectF()
 
-    private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
         style = Paint.Style.FILL
     }
 
-    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG).apply {
         style = Paint.Style.FILL
     }
 
-    private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
+
+    private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        isSubpixelText = true
+        isAntiAlias = true
+        isDither = true
+        isFilterBitmap = true
     }
 
     private val shadowPadding = dpToPx(14f)
 
     init {
-        // Enable software layer to render smooth Gaussian drop shadow via Paint.setShadowLayer
-        setLayerType(LAYER_TYPE_SOFTWARE, null)
         visibility = GONE
     }
 
@@ -187,13 +193,17 @@ class MaterialKeyBalloonView @JvmOverloads constructor(
             val surfaceColor = Color.parseColor("#363A42") // Material 3 Surface Container High Dark
             fillPaint.color = surfaceColor
             shadowPaint.color = surfaceColor
-            shadowPaint.setShadowLayer(dpToPx(10f), 0f, dpToPx(4f), Color.argb(140, 0, 0, 0))
+            shadowPaint.setShadowLayer(dpToPx(8f), 0f, dpToPx(3f), Color.argb(120, 0, 0, 0))
+            borderPaint.color = Color.argb(45, 255, 255, 255)
+            borderPaint.strokeWidth = dpToPx(1f)
             textPaint.color = Color.parseColor("#F1F3F5")
         } else {
             val surfaceColor = Color.parseColor("#FFFFFF") // Material 3 Surface High Light
             fillPaint.color = surfaceColor
             shadowPaint.color = surfaceColor
-            shadowPaint.setShadowLayer(dpToPx(8f), 0f, dpToPx(3f), Color.argb(70, 0, 0, 0))
+            shadowPaint.setShadowLayer(dpToPx(7f), 0f, dpToPx(2f), Color.argb(60, 0, 0, 0))
+            borderPaint.color = Color.argb(30, 0, 0, 0)
+            borderPaint.strokeWidth = dpToPx(1f)
             textPaint.color = Color.parseColor("#1A1C1E")
         }
 
@@ -204,15 +214,15 @@ class MaterialKeyBalloonView @JvmOverloads constructor(
         pivotY = (keyY + keyH / 2f) - minY
 
         alpha = 1.0f
-        scaleX = 0.55f
-        scaleY = 0.55f
+        scaleX = 0.82f
+        scaleY = 0.82f
         visibility = VISIBLE
 
         animate()
             .scaleX(1.0f)
             .scaleY(1.0f)
             .setDuration(70)
-            .setInterpolator(OvershootInterpolator(1.3f))
+            .setInterpolator(OvershootInterpolator(1.2f))
             .start()
 
         invalidate()
@@ -251,7 +261,10 @@ class MaterialKeyBalloonView @JvmOverloads constructor(
         // 2. Draw surface fill
         canvas.drawPath(balloonPath, fillPaint)
 
-        // 3. Draw bold preview character centered in balloon head
+        // 3. Draw subtle crisp container border
+        canvas.drawPath(balloonPath, borderPaint)
+
+        // 4. Draw bold preview character centered in balloon head
         val cx = headRectF.centerX()
         val cy = headRectF.centerY()
         val baseline = cy - (textPaint.descent() + textPaint.ascent()) / 2f

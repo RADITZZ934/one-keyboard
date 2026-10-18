@@ -56,7 +56,19 @@ class ClipboardAdapter(
                 DateUtils.MINUTE_IN_MILLIS,
                 DateUtils.FORMAT_ABBREV_RELATIVE
             )
-            tvTime.text = if (item.isPinned) "📌 Disematkan • $timeAgo" else timeAgo.toString()
+            if (item.isPinned) {
+                tvTime.text = "Disematkan • $timeAgo"
+                val pinDrawable = ContextCompat.getDrawable(context, R.drawable.ic_pin)?.mutate()?.apply {
+                    val size = (11 * context.resources.displayMetrics.density).toInt()
+                    setBounds(0, 0, size, size)
+                    setTint(ContextCompat.getColor(context, R.color.heliboard_accent))
+                }
+                tvTime.setCompoundDrawables(pinDrawable, null, null, null)
+                tvTime.compoundDrawablePadding = (4 * context.resources.displayMetrics.density).toInt()
+            } else {
+                tvTime.text = timeAgo.toString()
+                tvTime.setCompoundDrawables(null, null, null, null)
+            }
 
             // Pin state styling
             if (item.isPinned) {

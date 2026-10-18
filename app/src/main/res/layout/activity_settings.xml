@@ -291,7 +291,10 @@
                         android:layout_height="36dp"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
-                        android:text="🔄 Reset"
+                        app:icon="@drawable/ic_reset"
+                        app:iconSize="14dp"
+                        app:iconTint="@color/bento_blue"
+                        android:text="Reset"
                         android:textColor="@color/bento_blue"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -1044,7 +1047,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Versi 1.0.0 (Release)"
+                            android:text="Versi 2.0.4 (Release)"
                             android:textColor="@color/bento_text_secondary"
                             android:textSize="12sp" />
 

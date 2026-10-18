@@ -157,7 +157,11 @@
         android:layout_marginTop="12dp"
         android:insetTop="0dp"
         android:insetBottom="0dp"
-        android:text="🔄 Reset ke Ukuran Standar (100%)"
+        app:icon="@drawable/ic_reset"
+        app:iconGravity="textStart"
+        app:iconSize="16dp"
+        app:iconTint="@color/bento_blue"
+        android:text="Reset ke Ukuran Standar (100%)"
         android:textAllCaps="false"
         android:textColor="@color/bento_blue"
         android:textSize="13sp" />

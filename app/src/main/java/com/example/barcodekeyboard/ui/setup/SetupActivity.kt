@@ -205,11 +205,11 @@ class SetupActivity : AppCompatActivity() {
         // Update Step 1 UI
         if (step1Done) {
             cardStep1.setBackgroundResource(R.drawable.bg_setup_card_done)
-            ivStep1NumberBg.setImageResource(R.drawable.bg_step_circle_done)
-            tvStep1Number.text = "✓"
+            ivStep1NumberBg.setImageResource(R.drawable.ic_check_circle)
+            tvStep1Number.text = ""
             tvStep1Number.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
-            tvStep1StatusBadge.text = "✓ Aktif"
-            btnStep1Enable.text = "✓ Buka Pengaturan Keyboard (Aktif)"
+            tvStep1StatusBadge.text = "Aktif"
+            btnStep1Enable.text = "Buka Pengaturan Keyboard (Aktif)"
             btnStep1Enable.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
             btnStep1Enable.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         } else {
@@ -227,12 +227,12 @@ class SetupActivity : AppCompatActivity() {
         // Update Step 2 UI
         if (step2Done) {
             cardStep2.setBackgroundResource(R.drawable.bg_setup_card_done)
-            ivStep2NumberBg.setImageResource(R.drawable.bg_step_circle_done)
-            tvStep2Number.text = "✓"
+            ivStep2NumberBg.setImageResource(R.drawable.ic_check_circle)
+            tvStep2Number.text = ""
             tvStep2Number.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
-            tvStep2StatusBadge.text = "✓ Default"
+            tvStep2StatusBadge.text = "Default"
             tvStep2StatusBadge.setTextColor(ContextCompat.getColor(this, R.color.bento_blue))
-            btnStep2Select.text = "✓ Sudah Menjadi Keyboard Utama"
+            btnStep2Select.text = "Sudah Menjadi Keyboard Utama"
             btnStep2Select.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
             btnStep2Select.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         } else if (step1Done) {
@@ -262,12 +262,12 @@ class SetupActivity : AppCompatActivity() {
         // Update Step 3 UI
         if (step3Done) {
             cardStep3.setBackgroundResource(R.drawable.bg_setup_card_done)
-            ivStep3NumberBg.setImageResource(R.drawable.bg_step_circle_done)
-            tvStep3Number.text = "✓"
+            ivStep3NumberBg.setImageResource(R.drawable.ic_check_circle)
+            tvStep3Number.text = ""
             tvStep3Number.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
-            tvStep3StatusBadge.text = "✓ Diizinkan"
+            tvStep3StatusBadge.text = "Diizinkan"
             tvStep3StatusBadge.setTextColor(ContextCompat.getColor(this, R.color.bento_blue))
-            btnStep3Camera.text = "✓ Akses Kamera Aktif"
+            btnStep3Camera.text = "Akses Kamera Aktif"
             btnStep3Camera.backgroundTintList = ContextCompat.getColorStateList(this, R.color.bento_blue)
             btnStep3Camera.setTextColor(ContextCompat.getColor(this, R.color.bento_white))
         } else {
@@ -294,7 +294,7 @@ class SetupActivity : AppCompatActivity() {
         // All done handling
         if (step1Done && step2Done && step3Done) {
             layoutAllDoneBanner.visibility = View.VISIBLE
-            btnFinishSetup.text = "Mulai Mengetik Sekarang →"
+            btnFinishSetup.text = "Mulai Mengetik Sekarang"
             tvSkipSetup.visibility = View.GONE
         } else {
             layoutAllDoneBanner.visibility = View.GONE
@@ -313,7 +313,7 @@ class SetupActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "✓ Izin kamera berhasil diberikan!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Izin kamera berhasil diberikan!", Toast.LENGTH_SHORT).show()
             } else {
                 Toast.makeText(this, "Izin kamera diperlukan untuk fitur pemindai barcode", Toast.LENGTH_LONG).show()
             }

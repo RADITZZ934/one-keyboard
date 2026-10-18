@@ -248,6 +248,43 @@ class InputTextHandler {
         return false
     }
 
+    /**
+     * Moves cursor up by one line.
+     */
+    fun moveCursorUp(inputConnection: InputConnection?) {
+        if (inputConnection == null) return
+        sendKeyEvent(inputConnection, KeyEvent.KEYCODE_DPAD_UP)
+    }
+
+    /**
+     * Moves cursor down by one line.
+     */
+    fun moveCursorDown(inputConnection: InputConnection?) {
+        if (inputConnection == null) return
+        sendKeyEvent(inputConnection, KeyEvent.KEYCODE_DPAD_DOWN)
+    }
+
+    /**
+     * Selects all text in the active field.
+     */
+    fun selectAll(inputConnection: InputConnection?) {
+        inputConnection?.performContextMenuAction(android.R.id.selectAll)
+    }
+
+    /**
+     * Copies the currently selected text.
+     */
+    fun copySelectedText(inputConnection: InputConnection?) {
+        inputConnection?.performContextMenuAction(android.R.id.copy)
+    }
+
+    /**
+     * Cuts the currently selected text.
+     */
+    fun cutSelectedText(inputConnection: InputConnection?) {
+        inputConnection?.performContextMenuAction(android.R.id.cut)
+    }
+
     private fun sendKeyEvent(inputConnection: InputConnection, keyCode: Int) {
         val downEvent = KeyEvent(KeyEvent.ACTION_DOWN, keyCode)
         val upEvent = KeyEvent(KeyEvent.ACTION_UP, keyCode)

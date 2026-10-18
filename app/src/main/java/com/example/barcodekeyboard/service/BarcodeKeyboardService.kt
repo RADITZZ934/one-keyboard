@@ -10,20 +10,30 @@ import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
+import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+
 import com.example.barcodekeyboard.core.camera.BarcodeAnalyzer
 import com.example.barcodekeyboard.core.camera.CameraManager
 import com.example.barcodekeyboard.core.clipboard.ClipboardHistoryManager
 import com.example.barcodekeyboard.core.feedback.BeepSoundManager
 import com.example.barcodekeyboard.core.feedback.VibrationHelper
+import com.example.barcodekeyboard.core.gif.GifCommitHelper
 import com.example.barcodekeyboard.core.input.InputTextHandler
+import com.example.barcodekeyboard.core.voice.AiVoiceAssistantManager
 import com.example.barcodekeyboard.data.model.ClipboardItem
+import com.example.barcodekeyboard.data.model.tenor.TenorResult
+import com.example.barcodekeyboard.data.network.RetrofitClient
 import com.example.barcodekeyboard.data.preferences.KeyboardPreferences
 import com.example.barcodekeyboard.ui.keyboard.KeyboardView
 import com.example.barcodekeyboard.ui.settings.SettingsActivity
+import kotlinx.coroutines.*
 
 /**
  * Main InputMethodService orchestrating the HeliBoard-style keyboard,
@@ -44,6 +54,11 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
     private lateinit var vibrationHelper: VibrationHelper
     private lateinit var beepSoundManager: BeepSoundManager
     private lateinit var clipboardHistoryManager: ClipboardHistoryManager
+    private lateinit var aiVoiceAssistantManager: AiVoiceAssistantManager
+    private lateinit var gifCommitHelper: GifCommitHelper
+
+    private val keyboardScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var searchJob: Job? = null
 
     private var keyboardView: KeyboardView? = null
     private var cameraManager: CameraManager? = null
@@ -75,6 +90,8 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         vibrationHelper = VibrationHelper(this)
         beepSoundManager = BeepSoundManager(this)
         clipboardHistoryManager = ClipboardHistoryManager.getInstance(this)
+        aiVoiceAssistantManager = AiVoiceAssistantManager(this)
+        gifCommitHelper = GifCommitHelper(this)
 
         preferences.registerListener(prefChangeListener)
 
@@ -214,7 +231,7 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
 
         view.onFocusRequested = { x, y ->
             triggerKeyHaptic()
-            view.setStatusText("⚡ Memfokuskan...", isAccent = true)
+            view.setStatusText("Memfokuskan...", isAccent = true)
             cameraManager?.focusAtPoint(x, y) { success ->
                 view.notifyFocusResult(success)
             }
@@ -233,6 +250,98 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
             val target = current * scaleFactor
             cameraManager?.setZoomRatio(target)
             view.updateZoomDisplay(cameraManager?.getZoomRatio() ?: target)
+        }
+
+        // 4. Advanced Tool Drawer & Text Edit Callbacks
+        view.onSelectAllClicked = {
+            triggerKeyHaptic()
+            inputTextHandler.selectAll(currentInputConnection)
+        }
+
+        view.onCopyClicked = {
+            triggerKeyHaptic()
+            inputTextHandler.copySelectedText(currentInputConnection)
+            clipboardHistoryManager.captureCurrentClipboard(this)
+            Toast.makeText(this, "Teks disalin ke papan klip", Toast.LENGTH_SHORT).show()
+        }
+
+        view.onDpadUpClicked = {
+            triggerKeyHaptic()
+            inputTextHandler.moveCursorUp(currentInputConnection)
+        }
+
+        view.onDpadDownClicked = {
+            triggerKeyHaptic()
+            inputTextHandler.moveCursorDown(currentInputConnection)
+        }
+
+        view.onThemeToggleClicked = {
+            triggerKeyHaptic()
+            val newTheme = if (preferences.isDarkTheme(this)) KeyboardPreferences.THEME_LIGHT else KeyboardPreferences.THEME_DARK
+            preferences.setThemeMode(newTheme)
+            updateWindowNavigationBar(newTheme == KeyboardPreferences.THEME_DARK)
+        }
+
+        view.onFeedbackToggleClicked = {
+            triggerKeyHaptic()
+            val newVibe = !preferences.isVibrationEnabled
+            val newSound = !preferences.isSoundEnabled
+            preferences.setVibrationEnabled(newVibe)
+            preferences.setSoundEnabled(newSound)
+            val status = if (newVibe || newSound) "Aktif" else "Nonaktif"
+            Toast.makeText(this, "Efek Suara & Getar: $status", Toast.LENGTH_SHORT).show()
+        }
+
+        // 5. AI Voice Assistant Controls (Speech-to-Text)
+        view.onAiVoiceClicked = {
+            triggerKeyHaptic()
+            if (!aiVoiceAssistantManager.isListening) {
+                aiVoiceAssistantManager.startListening(
+                    onReady = {
+                        view.showAiVoiceListening("Mendengarkan... Silakan bicara")
+                    },
+                    onRms = { rms ->
+                        view.updateAiVoiceRms(rms)
+                    },
+                    onPartial = { partial ->
+                        view.updateAiVoicePartialText(partial)
+                    },
+                    onResult = { text ->
+                        view.hideAiVoiceListening()
+                        inputTextHandler.commitText(currentInputConnection, text)
+                        inputTextHandler.sendSpace(currentInputConnection)
+                        checkAndUpdateAutoCapitalization()
+                    },
+                    onError = { error ->
+                        view.hideAiVoiceListening()
+                        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                    }
+                )
+            } else {
+                aiVoiceAssistantManager.stopListening()
+                view.hideAiVoiceListening()
+            }
+        }
+
+        view.onAiVoiceStopClicked = {
+            triggerKeyHaptic()
+            aiVoiceAssistantManager.stopListening()
+            view.hideAiVoiceListening()
+        }
+
+        view.onAiVoiceCancelClicked = {
+            triggerKeyHaptic()
+            aiVoiceAssistantManager.stopListening()
+            view.hideAiVoiceListening()
+        }
+
+        // 6. Tenor GIF Callbacks
+        view.onGifSearchRequested = { query ->
+            fetchGifsFromTenor(query)
+        }
+
+        view.onGifSelected = { gifItem ->
+            handleGifCommit(gifItem)
         }
 
         return view.rootView
@@ -450,11 +559,76 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         keyboardView?.updateFlashIcon(false)
     }
 
+    private fun fetchGifsFromTenor(query: String) {
+        searchJob?.cancel()
+        searchJob = keyboardScope.launch {
+            if (query.isNotBlank()) {
+                delay(320) // Debounce delay while typing
+            }
+            try {
+                val apiKey = preferences.tenorApiKey
+                val response = withContext(Dispatchers.IO) {
+                    if (query.isBlank()) {
+                        RetrofitClient.tenorApi.getFeaturedGifs(apiKey = apiKey)
+                    } else {
+                        RetrofitClient.tenorApi.searchGifs(query = query, apiKey = apiKey)
+                    }
+                }
+                if (response.isSuccessful && response.body() != null) {
+                    val list = response.body()!!.results
+                    keyboardView?.displayGifs(list)
+                } else {
+                    keyboardView?.showGifError("Gagal memuat GIF (Kode ${response.code()})")
+                }
+            } catch (e: CancellationException) {
+                // Ignore cancellation from newer search
+            } catch (e: Exception) {
+                Log.e(TAG, "Tenor fetch error", e)
+                keyboardView?.showGifError("Tidak ada koneksi internet")
+            }
+        }
+    }
+
+    private fun handleGifCommit(gifItem: TenorResult) {
+        keyboardScope.launch {
+            keyboardView?.showGifSending("Menyiapkan GIF...")
+            val success = gifCommitHelper.commitGif(
+                inputConnection = currentInputConnection,
+                editorInfo = currentInputEditorInfo,
+                gifItem = gifItem,
+                onStatus = { status ->
+                    keyboardView?.showGifSending(status)
+                }
+            )
+
+            keyboardView?.hideGifSending()
+
+            if (success) {
+                if (preferences.isVibrationEnabled) {
+                    vibrationHelper.vibrateSuccess()
+                }
+                keyboardView?.toggleGif(false)
+            } else {
+                if (preferences.isVibrationEnabled) {
+                    vibrationHelper.vibrateKeyAction(null)
+                }
+                Toast.makeText(this@BarcodeKeyboardService, "Tautan GIF disalin / ditempel", Toast.LENGTH_SHORT).show()
+                keyboardView?.toggleGif(false)
+            }
+        }
+    }
+
+
+
     override fun onFinishInputView(finishingInput: Boolean) {
         super.onFinishInputView(finishingInput)
         Log.d(TAG, "onFinishInputView")
 
+        searchJob?.cancel()
+        keyboardView?.hideGifSending()
         stopCameraScanning()
+        aiVoiceAssistantManager.stopListening()
+        keyboardView?.hideAiVoiceListening()
 
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
@@ -464,10 +638,12 @@ class BarcodeKeyboardService : InputMethodService(), LifecycleOwner {
         super.onDestroy()
         Log.d(TAG, "BarcodeKeyboardService onDestroy")
 
+        keyboardScope.cancel()
         preferences.unregisterListener(prefChangeListener)
         cameraManager?.release()
         cameraManager = null
         beepSoundManager.release()
+        aiVoiceAssistantManager.stopListening()
 
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }

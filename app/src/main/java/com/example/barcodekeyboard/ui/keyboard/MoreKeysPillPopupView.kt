@@ -31,7 +31,7 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
     private var isDarkMode: Boolean = true
     private var fontScale: Float = 1.0f
 
-    private val itemWidth = dpToPx(38f)
+    private var actualItemWidth: Float = dpToPx(38f)
     private val itemHeight = dpToPx(48f)
     private val pillPadding = dpToPx(4f)
     private val shadowPadding = dpToPx(14f)
@@ -39,31 +39,53 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
     private val pillRectF = RectF()
     private val indicatorRectF = RectF()
 
-    private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG).apply {
         style = Paint.Style.FILL
     }
 
-    private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
+
+    private val indicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG).apply {
         style = Paint.Style.FILL
     }
 
-    private val indicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
-
-    private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+        isSubpixelText = true
+        isAntiAlias = true
+        isDither = true
+        isFilterBitmap = true
     }
 
-    private val selectedTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val selectedTextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG or Paint.SUBPIXEL_TEXT_FLAG).apply {
         textAlign = Paint.Align.CENTER
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        isSubpixelText = true
+        isAntiAlias = true
+        isDither = true
+        isFilterBitmap = true
     }
 
     init {
-        setLayerType(LAYER_TYPE_SOFTWARE, null)
         visibility = GONE
+        elevation = dpToPx(8f)
+        outlineProvider = object : android.view.ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: android.graphics.Outline) {
+                if (!pillRectF.isEmpty) {
+                    val radius = pillRectF.height() / 2f
+                    outline.setRoundRect(
+                        pillRectF.left.toInt(),
+                        pillRectF.top.toInt(),
+                        pillRectF.right.toInt(),
+                        pillRectF.bottom.toInt(),
+                        radius
+                    )
+                }
+            }
+        }
     }
 
     private fun dpToPx(dp: Float): Float = dp * context.resources.displayMetrics.density
@@ -86,7 +108,18 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
         // Default select first alternative if available, or base key
         this.selectedIndex = if (variantsList.size > 1) 1 else 0
 
-        val contentWidth = variantsList.size * itemWidth + pillPadding * 2
+        val rootWidth = if (rootOverlayView.width > 0) rootOverlayView.width.toFloat() else context.resources.displayMetrics.widthPixels.toFloat()
+        val margin = dpToPx(6f)
+        val maxAvailableContentWidth = maxOf(dpToPx(120f), rootWidth - (margin * 2) - (shadowPadding * 2))
+        val desiredItemWidth = dpToPx(38f)
+
+        actualItemWidth = if (variantsList.isNotEmpty()) {
+            minOf(desiredItemWidth, maxAvailableContentWidth / variantsList.size).coerceAtLeast(dpToPx(28f))
+        } else {
+            desiredItemWidth
+        }
+
+        val contentWidth = variantsList.size * actualItemWidth + pillPadding * 2
         val contentHeight = itemHeight + pillPadding * 2
 
         val viewWidth = (contentWidth + shadowPadding * 2).toInt()
@@ -104,8 +137,6 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
 
         val keyCenterX = keyX + keyW / 2f
         var targetX = keyCenterX - (contentWidth / 2f) - shadowPadding
-        val rootWidth = if (rootOverlayView.width > 0) rootOverlayView.width.toFloat() else context.resources.displayMetrics.widthPixels.toFloat()
-        val margin = dpToPx(4f)
         targetX = targetX.coerceIn(margin - shadowPadding, maxOf(margin - shadowPadding, rootWidth - contentWidth - margin - shadowPadding))
 
         val targetY = maxOf(dpToPx(4f) - shadowPadding, keyY - contentHeight - dpToPx(12f) - shadowPadding)
@@ -129,16 +160,16 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
         if (isDarkMode) {
             val bgColor = Color.parseColor("#323742") // Material 3 Surface Container High
             bgPaint.color = bgColor
-            shadowPaint.color = bgColor
-            shadowPaint.setShadowLayer(dpToPx(9f), 0f, dpToPx(4f), Color.argb(140, 0, 0, 0))
+            borderPaint.color = Color.argb(45, 255, 255, 255)
+            borderPaint.strokeWidth = dpToPx(1f)
             indicatorPaint.color = Color.parseColor("#2979FF") // Material 3 Accent Blue
             textPaint.color = Color.parseColor("#94A3B8")
             selectedTextPaint.color = Color.WHITE
         } else {
-            val bgColor = Color.parseColor("#E6EBF4") // Material 3 Light Surface Container High
+            val bgColor = Color.parseColor("#F1F5F9") // Clean Light Surface High
             bgPaint.color = bgColor
-            shadowPaint.color = bgColor
-            shadowPaint.setShadowLayer(dpToPx(8f), 0f, dpToPx(3f), Color.argb(65, 0, 0, 0))
+            borderPaint.color = Color.argb(35, 0, 0, 0)
+            borderPaint.strokeWidth = dpToPx(1f)
             indicatorPaint.color = Color.parseColor("#2563EB") // Vibrant Blue
             textPaint.color = Color.parseColor("#64748B")
             selectedTextPaint.color = Color.WHITE
@@ -152,8 +183,8 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
         pivotY = (keyY + keyH / 2f - targetY).coerceIn(0f, viewHeight.toFloat())
 
         alpha = 0f
-        scaleX = 0.65f
-        scaleY = 0.65f
+        scaleX = 0.85f
+        scaleY = 0.85f
         visibility = VISIBLE
 
         animate()
@@ -164,6 +195,7 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
             .setInterpolator(OvershootInterpolator(1.2f))
             .start()
 
+        invalidateOutline()
         invalidate()
     }
 
@@ -171,10 +203,10 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
      * Updates selected index based on the user's touch X coordinate in root keyboard space.
      */
     fun updateTouch(rootTouchX: Float) {
-        if (variants.isEmpty()) return
+        if (variants.isEmpty() || actualItemWidth <= 0f) return
         val pillContentLeft = translationX + shadowPadding + pillPadding
         val relX = rootTouchX - pillContentLeft
-        val newIndex = (relX / itemWidth).toInt().coerceIn(0, variants.size - 1)
+        val newIndex = (relX / actualItemWidth).toInt().coerceIn(0, variants.size - 1)
 
         if (newIndex != selectedIndex) {
             selectedIndex = newIndex
@@ -217,17 +249,17 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
 
         val pillRadius = pillRectF.height() / 2f
 
-        // 1. Draw drop shadow
-        canvas.drawRoundRect(pillRectF, pillRadius, pillRadius, shadowPaint)
-
-        // 2. Draw pill container background
+        // 1. Draw pill container background
         canvas.drawRoundRect(pillRectF, pillRadius, pillRadius, bgPaint)
+
+        // 2. Draw subtle crisp container border
+        canvas.drawRoundRect(pillRectF, pillRadius, pillRadius, borderPaint)
 
         // 3. Draw selected item indicator
         if (selectedIndex in variants.indices) {
-            val itemLeft = pillRectF.left + pillPadding + selectedIndex * itemWidth
+            val itemLeft = pillRectF.left + pillPadding + selectedIndex * actualItemWidth
             val itemTop = pillRectF.top + pillPadding
-            val itemRight = itemLeft + itemWidth
+            val itemRight = itemLeft + actualItemWidth
             val itemBottom = itemTop + itemHeight
 
             val inset = dpToPx(2f)
@@ -241,11 +273,11 @@ class MoreKeysPillPopupView @JvmOverloads constructor(
             canvas.drawRoundRect(indicatorRectF, indicatorRadius, indicatorRadius, indicatorPaint)
         }
 
-        // 4. Draw character options
+        // 4. Draw character options with subpixel precision
         val textCenterY = pillRectF.top + pillPadding + (itemHeight / 2f)
         for (i in variants.indices) {
             val char = variants[i]
-            val itemCenterX = pillRectF.left + pillPadding + i * itemWidth + (itemWidth / 2f)
+            val itemCenterX = pillRectF.left + pillPadding + i * actualItemWidth + (actualItemWidth / 2f)
 
             val paint = if (i == selectedIndex) selectedTextPaint else textPaint
             val baseline = textCenterY - (paint.descent() + paint.ascent()) / 2f
